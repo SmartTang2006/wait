@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>诗词雅趣 · 古诗词知识问答</title>
+<style>
+  :root {
+    --paper: #f3ecda;
+    --paper-2: #faf5e7;
+    --card: #fffdf4;
+    --ink: #2c2a26;
+    --ink-soft: #6b6557;
+    --red: #a93b2e;
+    --red-dark: #83291f;
+    --gold: #c3a164;
+    --gold-soft: #e4d6b4;
+    --green: #4a7c59;
+    --green-soft: #e4efe5;
+    --wrong: #c0392b;
+    --wrong-soft: #f9e5e2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Kaiti SC", "STKaiti", "KaiTi", "FangSong", "STFangsong", "Noto Serif SC", "SimSun", serif;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 18% 12%, rgba(195,161,100,.12), transparent 42%),
+      radial-gradient(circle at 82% 88%, rgba(169,59,46,.06), transparent 46%),
+      radial-gradient(circle at 70% 30%, rgba(195,161,100,.06), transparent 34%);
+    min-height: 100%;
+    padding: 26px 16px 60px;
+    overflow-x: hidden;
+  }
+  /* 背景山水装饰 */
+  .bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .bg-svg { position: absolute; top: 0; left: 0; width: 100%; height: 360px; }
+  .wrap { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; }
+
+  /* 顶部标题 */
+  header { text-align: center; margin-bottom: 28px; }
+  .seal {
+    display: inline-block; width: 54px; height: 54px; line-height: 54px;
+    background: var(--red); color: #fff; border-radius: 9px;
+    font-size: 31px; font-family: "KaiTi", serif; box-shadow: 0 4px 12px rgba(169,59,46,.35);
+    margin-bottom: 12px;
+  }
+  h1 {
+    display: inline-block; position: relative; padding: 0 34px;
+    font-size: 34px; letter-spacing: 7px; font-weight: normal;
+  }
+  h1::before, h1::after {
+    content: ""; position: absolute; top: 54%; height: 1px; width: 66px;
+  }
+  h1::before { right: 100%; background: linear-gradient(90deg, transparent, var(--gold)); }
+  h1::after { left: 100%; background: linear-gradient(270deg, transparent, var(--gold)); }
+  .subtitle { color: var(--ink-soft); font-size: 15px; margin-top: 9px; letter-spacing: 2px; }
+
+  /* 导航 */
+  nav {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 26px;
+  }
+  nav button {
+    font-family: inherit; font-size: 15px; cursor: pointer;
+    padding: 10px 18px; border-radius: 999px;
+    border: 1px solid var(--gold-soft); background: var(--card); color: var(--ink-soft);
+    transition: all .18s ease; letter-spacing: 1px;
+  }
+  nav button:hover { border-color: var(--gold); color: var(--ink); transform: translateY(-1px); }
+  nav button.active { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 4px 12px rgba(169,59,46,.3); }
+
+  /* 卡片 */
+  .card {
+    background: var(--card); border: 1px solid #ecdfc2; border-radius: 16px;
+    padding: 26px 24px; box-shadow: 0 8px 26px rgba(44,42,38,.08);
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .card::before {
+    content: ""; position: absolute; inset: 7px; border: 1px solid rgba(195,161,100,.28);
+    border-radius: 11px; pointer-events: none;
+  }
+  section { display: none; }
+  section.active { display: block; }
+  .section-title { font-size: 22px; letter-spacing: 3px; margin-bottom: 6px; }
+  .section-desc { color: var(--ink-soft); font-size: 14px; margin-bottom: 16px; }
+
+  /* 难度选择 */
+  .level-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .level-label { color: var(--ink-soft); font-size: 14px; letter-spacing: 1px; }
+  .level-btn {
+    font-family: inherit; font-size: 13px; cursor: pointer; letter-spacing: 1px;
+    padding: 6px 15px; border-radius: 999px;
+    border: 1px solid var(--gold-soft); background: var(--card); color: var(--ink-soft);
+    transition: all .16s ease;
+  }
+  .level-btn:hover { border-color: var(--gold); }
+  .level-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+
+  /* 进度与分数 */
+  .hud { display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: var(--ink-soft); margin-bottom: 10px; }
+  .hud .score { color: var(--red); font-weight: bold; }
+  .progress { height: 8px; background: #ecdfc2; border-radius: 999px; overflow: hidden; margin-bottom: 20px; }
+  .progress .bar { height: 100%; background: linear-gradient(90deg, var(--gold), var(--red)); border-radius: 999px; transition: width .3s ease; }
+
+  .q-text { font-size: 21px; line-height: 1.7; margin-bottom: 20px; }
+  .q-text .tag { display:inline-block; font-size:12px; color:#fff; background:var(--red); border-radius:6px; padding:2px 8px; margin-right:8px; vertical-align: middle; }
+  .q-text .tag.lv2 { background: var(--gold); }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .options button {
+    font-family: inherit; font-size: 16px; text-align: left; cursor: pointer;
+    padding: 13px 16px; border-radius: 12px;
+    border: 1px solid #e6d8b6; background: #fffef9; color: var(--ink);
+    transition: all .15s ease; line-height: 1.5;
+  }
+  .options button:hover:not(:disabled) { border-color: var(--gold); background: #fbf6e8; }
+  .options button.correct { background: var(--green-soft); border-color: var(--green); color: #2f5a3f; }
+  .options button.wrong { background: var(--wrong-soft); border-color: var(--wrong); color: #8c2f25; }
+  .options button:disabled { cursor: default; }
+
+  .feedback { margin-top: 16px; font-size: 16px; min-height: 24px; }
+  .feedback.ok { color: var(--green); }
+  .feedback.no { color: var(--wrong); }
+
+  .next-btn, .primary-btn {
+    font-family: inherit; font-size: 16px; cursor: pointer;
+    margin-top: 18px; padding: 12px 28px; border-radius: 999px;
+    border: none; background: var(--red); color: #fff; letter-spacing: 2px;
+    box-shadow: 0 4px 12px rgba(169,59,46,.3); transition: all .18s ease;
+  }
+  .next-btn:hover, .primary-btn:hover { background: var(--red-dark); transform: translateY(-1px); }
+  .next-btn:disabled { background: #c9bfae; box-shadow: none; cursor: default; }
+
+  /* 填空 */
+  .fill-line { font-size: 24px; letter-spacing: 3px; margin: 10px 0 22px; text-align: center; color: var(--ink); }
+  .fill-line .blank { color: var(--red); font-weight: bold; border-bottom: 2px dashed var(--red); padding: 0 4px; }
+  .fill-input-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .fill-input {
+    font-family: inherit; font-size: 18px; padding: 12px 16px; border-radius: 12px;
+    border: 1px solid #e6d8b6; background: #fffef9; color: var(--ink);
+    width: 260px; max-width: 80vw; text-align: center; letter-spacing: 2px;
+  }
+  .fill-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(195,161,100,.2); }
+  .fill-source { color: var(--ink-soft); font-size: 14px; margin-top: 14px; text-align: center; }
+
+  /* 看图猜诗 */
+  .emoji-frame {
+    text-align: center; font-size: 62px; letter-spacing: 14px; line-height: 1.4;
+    padding: 26px; margin: 8px 0 20px;
+    background: #fbf6e8; border: 2px dashed var(--gold); border-radius: 16px;
+  }
+  .emoji-hint { text-align: center; color: var(--ink-soft); font-size: 14px; margin-bottom: 18px; }
+  .scene-frame {
+    margin: 8px 0 16px; padding: 6px;
+    background: #fbf6e8; border: 2px solid var(--gold); border-radius: 14px;
+  }
+  .scene-frame svg { display: block; width: 100%; height: auto; border-radius: 9px; }
+  .hint-row { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .hint-btn {
+    font-family: inherit; font-size: 14px; cursor: pointer; letter-spacing: 1px;
+    padding: 8px 18px; border-radius: 999px;
+    border: 1px solid var(--gold); background: var(--card); color: var(--ink-soft);
+    transition: all .16s ease;
+  }
+  .hint-btn:hover { background: var(--gold-soft); color: var(--ink); }
+  .hint-btn:disabled { opacity: .45; cursor: default; }
+
+  /* 赏析 */
+  .search-row { margin-bottom: 18px; }
+  .search-input {
+    font-family: inherit; font-size: 16px; padding: 12px 16px; border-radius: 12px;
+    border: 1px solid #e6d8b6; background: #fffef9; color: var(--ink); width: 100%;
+  }
+  .search-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(195,161,100,.2); }
+  .poem-card { border: 1px solid #ecdfc2; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; cursor: pointer; transition: all .15s ease; }
+  .poem-card:hover { border-color: var(--gold); background: #fffef9; }
+  .poem-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .poem-title { font-size: 19px; letter-spacing: 2px; }
+  .poem-meta { color: var(--ink-soft); font-size: 13px; }
+  .poem-first { color: var(--ink-soft); font-size: 14px; margin-top: 6px; }
+  .poem-body { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px dashed #e6d8b6; }
+  .poem-card.open .poem-body { display: block; }
+  .poem-body .orig { font-size: 17px; line-height: 2; text-align: center; letter-spacing: 2px; margin-bottom: 14px; }
+  .poem-body .block-title { font-size: 14px; color: var(--red); letter-spacing: 2px; margin: 10px 0 4px; }
+  .poem-body .block-text { font-size: 15px; line-height: 1.9; color: var(--ink); }
+  .empty { text-align: center; color: var(--ink-soft); padding: 40px 0; font-size: 15px; }
+
+  footer { text-align: center; color: var(--ink-soft); font-size: 13px; margin-top: 30px; letter-spacing: 1px; }
+
+  /* 飞花令 */
+  .fh-log { max-height: 320px; overflow-y: auto; margin: 12px 0 4px; padding: 12px 14px; border: 1px solid #ecdfc2; border-radius: 12px; background: #fffef9; }
+  .fh-turn-item { margin-bottom: 10px; }
+  .fh-turn-item:last-child { margin-bottom: 0; }
+  .fh-role { font-size: 13px; letter-spacing: 1px; }
+  .fh-role.you { color: var(--red); }
+  .fh-role.pc { color: var(--gold); }
+  .fh-said { font-size: 17px; line-height: 1.6; }
+  .fh-src { font-size: 12px; color: var(--ink-soft); margin-left: 6px; }
+
+  /* 封面 */
+  .cover {
+    position: fixed; inset: 0; z-index: 100; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(circle at 50% 26%, #fdfbf2 0%, #f4eede 46%, #e7dfca 100%);
+    transition: opacity .6s ease, visibility .6s ease;
+  }
+  .cover.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+  .cover-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cover-inner { position: relative; z-index: 2; text-align: center; padding: 20px; }
+  .cover-seal {
+    display: inline-block; width: 68px; height: 68px; line-height: 68px;
+    background: var(--red); color: #fff; border-radius: 12px;
+    font-size: 40px; font-family: "KaiTi", serif;
+    box-shadow: 0 8px 20px rgba(169,59,46,.35);
+    margin-bottom: 26px; animation: coverIn .9s ease both;
+  }
+  .cover-title {
+    font-size: clamp(30px, 8vw, 48px); letter-spacing: 12px; color: var(--ink);
+    font-weight: normal; animation: coverIn .9s .15s ease both;
+  }
+  .cover-rule {
+    width: 130px; height: 1px; margin: 20px auto;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: coverIn .9s .25s ease both;
+  }
+  .cover-sub { color: var(--ink-soft); font-size: 16px; letter-spacing: 3px; margin-bottom: 48px; animation: coverIn .9s .3s ease both; }
+  .cover-start {
+    font-family: inherit; font-size: 20px; letter-spacing: 8px; cursor: pointer;
+    padding: 15px 66px; border-radius: 999px; border: 1px solid var(--gold);
+    background: linear-gradient(135deg, var(--red), var(--red-dark));
+    color: #fff; box-shadow: 0 8px 22px rgba(169,59,46,.38);
+    transition: transform .18s ease, box-shadow .18s ease;
+    animation: coverIn .9s .45s ease both;
+  }
+  .cover-start:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 28px rgba(169,59,46,.45); }
+  .cover-foot { margin-top: 36px; color: var(--ink-soft); font-size: 13px; letter-spacing: 1px; opacity: .85; animation: coverIn .9s .6s ease both; }
+  @keyframes coverIn {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .back-btn {
+    position: fixed; top: 16px; right: 16px; z-index: 99;
+    font-family: inherit; font-size: 13px; letter-spacing: 1px; cursor: pointer;
+    padding: 8px 15px; border-radius: 999px;
+    border: 1px solid var(--gold-soft); background: var(--card); color: var(--ink-soft);
+    box-shadow: 0 3px 10px rgba(44,42,38,.12); transition: all .16s ease;
+  }
+  .back-btn:hover { border-color: var(--gold); color: var(--ink); }
+  .petal {
+    position: absolute; top: -30px; width: 13px; height: 20px;
+    background: linear-gradient(160deg, #ecc2ba, #d69a8d);
+    border-radius: 60% 40% 55% 45%; opacity: 0;
+    animation-name: petalFall; animation-timing-function: linear; animation-iteration-count: infinite;
+  }
+  @keyframes petalFall {
+    0% { transform: translateY(-40px) translateX(0) rotate(0deg); opacity: 0; }
+    8% { opacity: .8; }
+    50% { transform: translateY(50vh) translateX(26px) rotate(160deg); opacity: .7; }
+    100% { transform: translateY(104vh) translateX(-14px) rotate(340deg); opacity: .25; }
+  }
+  .cloud { animation: drift 26s ease-in-out infinite; }
+  .cloud2 { animation-duration: 34s; }
+  @keyframes drift {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(42px); }
+    100% { transform: translateX(0); }
+  }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 26px; padding: 0 20px; }
+    h1::before, h1::after { width: 34px; }
+    .q-text { font-size: 18px; }
+    .emoji-frame { font-size: 46px; letter-spacing: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 封面 -->
+<div class="cover" id="cover">
+  <svg class="cover-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#f4ecd6" stop-opacity="0.9"/>
+        <stop offset="70%" stop-color="#efe6cd" stop-opacity="0.22"/>
+        <stop offset="100%" stop-color="#efe6cd" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="1080" cy="210" r="150" fill="url(#moonGlow)"/>
+    <circle cx="1080" cy="210" r="86" fill="#f1e8cf" opacity="0.95"/>
+    <g fill="#e9e2d0" opacity="0.55">
+      <path d="M0 560 Q170 430 340 520 T700 505 T1080 520 T1440 495 L1440 900 L0 900 Z"/>
+    </g>
+    <g fill="#dcd4bf" opacity="0.5">
+      <path d="M0 640 Q240 520 480 600 T960 585 T1440 605 L1440 900 L0 900 Z"/>
+    </g>
+    <g fill="#cdc4ac" opacity="0.45">
+      <path d="M0 720 Q300 620 580 690 T1200 675 T1440 705 L1440 900 L0 900 Z"/>
+    </g>
+    <g class="cloud" fill="#ffffff" opacity="0.5">
+      <ellipse cx="330" cy="250" rx="190" ry="30"/>
+      <ellipse cx="500" cy="268" rx="150" ry="24"/>
+      <ellipse cx="160" cy="262" rx="120" ry="22"/>
+    </g>
+    <g class="cloud cloud2" fill="#ffffff" opacity="0.34">
+      <ellipse cx="900" cy="330" rx="210" ry="32"/>
+      <ellipse cx="1130" cy="348" rx="150" ry="26"/>
+    </g>
+    <g stroke="#8b8578" stroke-width="2.2" fill="none" opacity="0.65">
+      <path d="M600 300 q9 -9 18 0 q9 -9 18 0"/>
+      <path d="M648 278 q7 -7 14 0 q7 -7 14 0"/>
+      <path d="M566 322 q7 -7 14 0 q7 -7 14 0"/>
+    </g>
+  </svg>
+  <span class="petal" style="left:12%; animation-duration:11s; animation-delay:0s;"></span>
+  <span class="petal" style="left:28%; animation-duration:13s; animation-delay:2.5s;"></span>
+  <span class="petal" style="left:46%; animation-duration:10s; animation-delay:4s;"></span>
+  <span class="petal" style="left:64%; animation-duration:14s; animation-delay:1.2s;"></span>
+  <span class="petal" style="left:80%; animation-duration:12s; animation-delay:3.4s;"></span>
+  <span class="petal" style="left:91%; animation-duration:15s; animation-delay:5.5s;"></span>
+  <div class="cover-inner">
+    <div class="cover-seal">诗</div>
+    <div class="cover-title">诗词雅趣</div>
+    <div class="cover-rule"></div>
+    <div class="cover-sub">古诗词知识问答 · 带你走进古典之美</div>
+    <button class="cover-start" id="cover-start">开 始</button>
+    <div class="cover-foot">双击即可使用 · 无需联网</div>
+  </div>
+</div>
+<button class="back-btn" id="back-cover" title="回到封面">🏠 封面</button>
+
+<div class="bg">
+  <svg class="bg-svg" viewBox="0 0 1440 360" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <circle cx="1180" cy="80" r="46" fill="#c3a164" opacity="0.22"/>
+    <path d="M0 250 Q140 150 280 210 T560 195 T820 205 T1100 188 T1440 215 L1440 360 L0 360 Z" fill="#2c2a26" opacity="0.05"/>
+    <path d="M0 285 Q200 205 380 245 T760 235 T1120 245 T1440 233 L1440 360 L0 360 Z" fill="#2c2a26" opacity="0.08"/>
+    <path d="M0 315 Q220 258 430 292 T870 282 T1300 298 T1440 290 L1440 360 L0 360 Z" fill="#2c2a26" opacity="0.11"/>
+    <g stroke="#2c2a26" stroke-width="1.6" fill="none" opacity="0.16">
+      <path d="M300 92 q7 -9 14 0 q7 -9 14 0"/>
+      <path d="M346 78 q6 -8 12 0 q6 -8 12 0"/>
+      <path d="M272 112 q6 -7 12 0 q6 -7 12 0"/>
+    </g>
+  </svg>
+</div>
+
+<div class="wrap">
+
+  <header>
+    <div class="seal">诗</div>
+    <h1>诗词雅趣</h1>
+    <div class="subtitle">古诗词知识问答 · 带你走进古典之美</div>
+  </header>
+
+  <nav>
+    <button class="active" data-tab="quiz">🎯 闯关答题</button>
+    <button data-tab="fill">✍️ 诗词填空</button>
+    <button data-tab="emoji">🖼️ 看图猜诗</button>
+    <button data-tab="appreciate">📖 诗词赏析</button>
+    <button data-tab="feihua">🌸 飞花令</button>
+  </nav>
+
+  <!-- 选择题闯关 -->
+  <section id="quiz" class="active">
+    <div class="card">
+      <div class="section-title">🎯 闯关答题</div>
+      <div class="section-desc">看题目选答案，答对得分。可选「基础 / 进阶」难度。</div>
+      <div class="level-row">
+        <span class="level-label">难度：</span>
+        <button class="level-btn active" data-level="all">全部</button>
+        <button class="level-btn" data-level="1">基础</button>
+        <button class="level-btn" data-level="2">进阶</button>
+      </div>
+      <div class="hud">
+        <span id="quiz-progress">第 1 题</span>
+        <span>得分：<span class="score" id="quiz-score">0</span></span>
+      </div>
+      <div class="progress"><div class="bar" id="quiz-bar" style="width:0%"></div></div>
+      <div class="q-text" id="quiz-q"></div>
+      <div class="options" id="quiz-options"></div>
+      <div class="feedback" id="quiz-feedback"></div>
+      <button class="next-btn" id="quiz-next">下一题</button>
+    </div>
+  </section>
+
+  <!-- 诗词填空 -->
+  <section id="fill">
+    <div class="card">
+      <div class="section-title">✍️ 诗词填空</div>
+      <div class="section-desc">补全诗句，把下句填进空白处（标点符号可以不写）。</div>
+      <div class="hud">
+        <span id="fill-progress">第 1 题</span>
+        <span>得分：<span class="score" id="fill-score">0</span></span>
+      </div>
+      <div class="progress"><div class="bar" id="fill-bar" style="width:0%"></div></div>
+      <div class="fill-line" id="fill-line"></div>
+      <div class="fill-input-row" id="fill-input-row">
+        <input class="fill-input" id="fill-input" type="text" placeholder="在这里填写下句" autocomplete="off">
+        <button class="primary-btn" id="fill-submit">确认</button>
+      </div>
+      <div class="feedback" id="fill-feedback"></div>
+      <div class="fill-source" id="fill-source"></div>
+      <div id="fill-options"></div>
+      <button class="next-btn" id="fill-next">下一题</button>
+    </div>
+  </section>
+
+  <!-- 看图猜诗 -->
+  <section id="emoji">
+    <div class="card">
+      <div class="section-title">🖼️ 看图猜诗</div>
+      <div class="section-desc">简单：看表情选答案；困难：看水墨画，自己写出诗名或诗句。</div>
+      <div class="level-row">
+        <span class="level-label">难度：</span>
+        <button class="level-btn active" data-level="easy">简单</button>
+        <button class="level-btn" data-level="hard">困难</button>
+      </div>
+      <div class="hud">
+        <span id="emoji-progress">第 1 题</span>
+        <span>得分：<span class="score" id="emoji-score">0</span></span>
+      </div>
+      <div class="progress"><div class="bar" id="emoji-bar" style="width:0%"></div></div>
+
+      <div id="emoji-easy">
+        <div class="emoji-frame" id="emoji-frame"></div>
+        <div class="emoji-hint">👇 点击下面选项，猜出对应的诗</div>
+        <div class="options" id="emoji-options"></div>
+      </div>
+
+      <div id="emoji-hard" style="display:none">
+        <div class="scene-frame" id="scene-frame"></div>
+        <div class="emoji-hint" id="scene-hint">根据这幅水墨画，写出诗名或诗句</div>
+        <div class="fill-input-row">
+          <input class="fill-input" id="scene-input" type="text" placeholder="写出诗名或诗句" autocomplete="off">
+          <button class="primary-btn" id="scene-submit">确认</button>
+        </div>
+        <div class="hint-row">
+          <button class="hint-btn" id="scene-hint-btn">💡 提示</button>
+          <button class="hint-btn" id="scene-answer-btn">👀 看答案</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="emoji-feedback"></div>
+      <div class="fill-source" id="emoji-source"></div>
+      <div id="emoji-summary"></div>
+      <button class="next-btn" id="emoji-next">下一题</button>
+    </div>
+  </section>
+
+  <!-- 诗词赏析 -->
+  <section id="appreciate">
+    <div class="card">
+      <div class="section-title">📖 诗词赏析</div>
+      <div class="section-desc">输入诗名、作者或诗句搜索，点击任意一首查看原文、译文与赏析。</div>
+      <div class="search-row">
+        <input class="search-input" id="poem-search" type="text" placeholder="例如：李白 / 静夜思 / 举头望明月" autocomplete="off">
+      </div>
+      <div id="poem-list"></div>
+    </div>
+  </section>
+
+  <!-- 飞花令 -->
+  <section id="feihua">
+    <div class="card">
+      <div class="section-title">🌸 飞花令</div>
+      <div class="section-desc">选一个字，和电脑轮流说出含这个字的诗句；重复或接不上就算输。</div>
+      <div class="level-row">
+        <span class="level-label">题目字：</span>
+        <button class="level-btn fh-key active" data-k="花">花</button>
+        <button class="level-btn fh-key" data-k="月">月</button>
+        <button class="level-btn fh-key" data-k="风">风</button>
+        <button class="level-btn fh-key" data-k="春">春</button>
+        <button class="level-btn fh-key" data-k="雪">雪</button>
+        <button class="level-btn fh-key" data-k="酒">酒</button>
+        <button class="level-btn fh-key" data-k="山">山</button>
+        <button class="level-btn fh-key" data-k="水">水</button>
+        <button class="level-btn fh-key" data-k="人">人</button>
+        <button class="level-btn fh-key" data-k="云">云</button>
+        <input class="fill-input" id="fh-custom" type="text" maxlength="1" placeholder="自选一字" autocomplete="off" style="width:110px;padding:8px 12px;font-size:15px;text-align:center;">
+      </div>
+      <div class="level-row">
+        <span class="level-label">先后：</span>
+        <button class="level-btn fh-turn active" data-t="you">你先</button>
+        <button class="level-btn fh-turn" data-t="pc">电脑先</button>
+      </div>
+      <div class="hud">
+        <span id="fh-status">请选字后开始</span>
+        <span>回合：<span class="score" id="fh-round">0</span></span>
+      </div>
+      <div class="fh-log" id="fh-log"></div>
+      <div class="fill-input-row" style="margin-top:14px">
+        <input class="fill-input" id="fh-input" type="text" placeholder="输入含所选字的诗句" autocomplete="off">
+        <button class="primary-btn" id="fh-submit" style="margin-top:0">出句</button>
+      </div>
+      <div class="feedback" id="fh-feedback"></div>
+      <div class="hint-row">
+        <button class="hint-btn" id="fh-restart">🔄 重新开始</button>
+        <button class="hint-btn" id="fh-giveup">🏳️ 认输</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>诗词雅趣 · 双击即可使用，无需联网 · 愿你腹有诗书气自华</footer>
+</div>
+
+<script>
+/* ============ 数据 ============ */
+
+// 选择题（level: 1=基础 2=进阶；正确选项显示时自动打乱位置）
+const quizData = [
+  { q: "“床前明月光，疑是地上霜”出自哪首诗？", options: ["静夜思","春晓","相思","江雪"], answer: "静夜思", level: 1 },
+  { q: "《静夜思》的作者是谁？", options: ["李白","杜甫","白居易","孟浩然"], answer: "李白", level: 1 },
+  { q: "“春眠不觉晓，处处闻啼鸟”的作者是？", options: ["孟浩然","王维","杜牧","贺知章"], answer: "孟浩然", level: 1 },
+  { q: "“白日依山尽，黄河入海流”的下一句是？", options: ["欲穷千里目，更上一层楼","飞流直下三千尺，疑是银河落九天","野火烧不尽，春风吹又生","千山鸟飞绝，万径人踪灭"], answer: "欲穷千里目，更上一层楼", level: 1 },
+  { q: "“谁知盘中餐，粒粒皆辛苦”主要想告诉我们？", options: ["珍惜粮食","珍惜时间","努力读书","思念家乡"], answer: "珍惜粮食", level: 1 },
+  { q: "骆宾王写《咏鹅》时大约几岁？", options: ["七岁","二十岁","四十岁","六十岁"], answer: "七岁", level: 1 },
+  { q: "“飞流直下三千尺，疑是银河落九天”描写的是哪座山？", options: ["庐山","泰山","黄山","华山"], answer: "庐山", level: 1 },
+  { q: "“两个黄鹂鸣翠柳，一行白鹭上青天”出自杜甫的哪首诗？", options: ["绝句","春夜喜雨","登高","望岳"], answer: "绝句", level: 1 },
+  { q: "“千山鸟飞绝，万径人踪灭”描写的是哪个季节的景象？", options: ["冬天","春天","夏天","秋天"], answer: "冬天", level: 1 },
+  { q: "“少小离家老大回，乡音无改鬓毛衰”的作者是？", options: ["贺知章","孟浩然","王维","柳宗元"], answer: "贺知章", level: 1 },
+  { q: "“谁言寸草心，报得三春晖”赞颂的是？", options: ["母爱","友情","思乡","爱国"], answer: "母爱", level: 1 },
+  { q: "“但愿人长久，千里共婵娟”中的“婵娟”指什么？", options: ["月亮","美女","花朵","星辰"], answer: "月亮", level: 1 },
+  { q: "“但愿人长久，千里共婵娟”的作者是？", options: ["苏轼","李白","杜甫","辛弃疾"], answer: "苏轼", level: 1 },
+  { q: "“红豆生南国，春来发几枝”中的红豆寄托什么情感？", options: ["相思","乡愁","喜悦","忧愁"], answer: "相思", level: 1 },
+  { q: "“好雨知时节，当春乃发生”的作者是？", options: ["杜甫","李白","白居易","杜牧"], answer: "杜甫", level: 1 },
+  { q: "“野火烧不尽，春风吹又生”描写的是？", options: ["小草","野花","大树","庄稼"], answer: "小草", level: 1 },
+  { q: "“清明时节雨纷纷，路上行人欲断魂”中的“欲断魂”形容？", options: ["十分伤感","非常开心","想要回家","身体不适"], answer: "十分伤感", level: 1 },
+  { q: "“小荷才露尖尖角，早有蜻蜓立上头”描写的季节是？", options: ["初夏","深秋","寒冬","早春"], answer: "初夏", level: 1 },
+  { q: "“独在异乡为异客，每逢佳节倍思亲”中的“佳节”通常指？", options: ["重阳节","春节","中秋节","端午节"], answer: "重阳节", level: 1 },
+  { q: "“醉卧沙场君莫笑，古来征战几人回”出自哪首诗？", options: ["凉州词","出塞","从军行","塞下曲"], answer: "凉州词", level: 1 },
+  { q: "“劝君更尽一杯酒，西出阳关无故人”的作者是？", options: ["王维","李白","杜甫","孟浩然"], answer: "王维", level: 1 },
+  { q: "“夜来风雨声”的前一句是？", options: ["处处闻啼鸟","春眠不觉晓","低头思故乡","更上一层楼"], answer: "处处闻啼鸟", level: 1 },
+
+  { q: "“会当凌绝顶，一览众山小”出自杜甫的哪首诗？", options: ["望岳","登高","春望","蜀相"], answer: "望岳", level: 2 },
+  { q: "“落霞与孤鹜齐飞，秋水共长天一色”出自王勃的哪篇名作？", options: ["滕王阁序","岳阳楼记","醉翁亭记","桃花源记"], answer: "滕王阁序", level: 2 },
+  { q: "“大江东去，浪淘尽，千古风流人物”是苏轼哪首词的开篇？", options: ["念奴娇·赤壁怀古","水调歌头","江城子","定风波"], answer: "念奴娇·赤壁怀古", level: 2 },
+  { q: "“寻寻觅觅，冷冷清清，凄凄惨惨戚戚”出自李清照的哪首词？", options: ["声声慢","如梦令","一剪梅","醉花阴"], answer: "声声慢", level: 2 },
+  { q: "“春蚕到死丝方尽，蜡炬成灰泪始干”出自李商隐的哪首诗？", options: ["无题","锦瑟","夜雨寄北","嫦娥"], answer: "无题", level: 2 },
+  { q: "“海内存知己，天涯若比邻”的作者是？", options: ["王勃","王维","王之涣","王昌龄"], answer: "王勃", level: 2 },
+  { q: "杜甫被后人尊称为？", options: ["诗圣","诗仙","诗鬼","诗佛"], answer: "诗圣", level: 2 },
+  { q: "李白被后人尊称为？", options: ["诗仙","诗圣","诗鬼","诗佛"], answer: "诗仙", level: 2 },
+  { q: "“明月松间照，清泉石上流”出自王维的？", options: ["山居秋暝","鸟鸣涧","鹿柴","相思"], answer: "山居秋暝", level: 2 },
+  { q: "“沉舟侧畔千帆过，病树前头万木春”的作者是？", options: ["刘禹锡","柳宗元","韩愈","白居易"], answer: "刘禹锡", level: 2 },
+  { q: "“天生我材必有用，千金散尽还复来”出自李白的？", options: ["将进酒","蜀道难","行路难","梦游天姥吟留别"], answer: "将进酒", level: 2 },
+  { q: "“人生自古谁无死，留取丹心照汗青”的作者是？", options: ["文天祥","岳飞","辛弃疾","陆游"], answer: "文天祥", level: 2 },
+  { q: "“莫等闲，白了少年头，空悲切”出自岳飞的哪首词？", options: ["满江红","破阵子","永遇乐","水调歌头"], answer: "满江红", level: 2 }
+];
+
+// 填空（answer 为正确答案，作答时自动忽略标点、空格）
+const fillData = [
+  { line: "床前明月光，", answer: "疑是地上霜", source: "李白《静夜思》" },
+  { line: "举头望明月，", answer: "低头思故乡", source: "李白《静夜思》" },
+  { line: "春眠不觉晓，", answer: "处处闻啼鸟", source: "孟浩然《春晓》" },
+  { line: "夜来风雨声，", answer: "花落知多少", source: "孟浩然《春晓》" },
+  { line: "白日依山尽，", answer: "黄河入海流", source: "王之涣《登鹳雀楼》" },
+  { line: "欲穷千里目，", answer: "更上一层楼", source: "王之涣《登鹳雀楼》" },
+  { line: "谁知盘中餐，", answer: "粒粒皆辛苦", source: "李绅《悯农》" },
+  { line: "飞流直下三千尺，", answer: "疑是银河落九天", source: "李白《望庐山瀑布》" },
+  { line: "千山鸟飞绝，", answer: "万径人踪灭", source: "柳宗元《江雪》" },
+  { line: "野火烧不尽，", answer: "春风吹又生", source: "白居易《赋得古原草送别》" },
+  { line: "红豆生南国，", answer: "春来发几枝", source: "王维《相思》" },
+  { line: "独在异乡为异客，", answer: "每逢佳节倍思亲", source: "王维《九月九日忆山东兄弟》" },
+  { line: "劝君更尽一杯酒，", answer: "西出阳关无故人", source: "王维《送元二使安西》" },
+  { line: "清明时节雨纷纷，", answer: "路上行人欲断魂", source: "杜牧《清明》" },
+  { line: "好雨知时节，", answer: "当春乃发生", source: "杜甫《春夜喜雨》" },
+  { line: "慈母手中线，", answer: "游子身上衣", source: "孟郊《游子吟》" },
+  { line: "谁言寸草心，", answer: "报得三春晖", source: "孟郊《游子吟》" },
+
+  { line: "会当凌绝顶，", answer: "一览众山小", source: "杜甫《望岳》" },
+  { line: "海内存知己，", answer: "天涯若比邻", source: "王勃《送杜少府之任蜀州》" },
+  { line: "大漠孤烟直，", answer: "长河落日圆", source: "王维《使至塞上》" },
+  { line: "明月松间照，", answer: "清泉石上流", source: "王维《山居秋暝》" },
+  { line: "采菊东篱下，", answer: "悠然见南山", source: "陶渊明《饮酒》" },
+  { line: "山重水复疑无路，", answer: "柳暗花明又一村", source: "陆游《游山西村》" },
+  { line: "春蚕到死丝方尽，", answer: "蜡炬成灰泪始干", source: "李商隐《无题》" },
+  { line: "月落乌啼霜满天，", answer: "江枫渔火对愁眠", source: "张继《枫桥夜泊》" },
+  { line: "沉舟侧畔千帆过，", answer: "病树前头万木春", source: "刘禹锡《酬乐天扬州初逢席上见赠》" },
+  { line: "天生我材必有用，", answer: "千金散尽还复来", source: "李白《将进酒》" },
+  { line: "无边落木萧萧下，", answer: "不尽长江滚滚来", source: "杜甫《登高》" },
+  { line: "不识庐山真面目，", answer: "只缘身在此山中", source: "苏轼《题西林壁》" },
+  { line: "接天莲叶无穷碧，", answer: "映日荷花别样红", source: "杨万里《晓出净慈寺送林子方》" },
+  { line: "问渠那得清如许，", answer: "为有源头活水来", source: "朱熹《观书有感》" },
+  { line: "日出江花红胜火，", answer: "春来江水绿如蓝", source: "白居易《忆江南》" },
+  { line: "纸上得来终觉浅，", answer: "绝知此事要躬行", source: "陆游《冬夜读书示子聿》" }
+];
+
+// 看图猜诗（用表情当“图”）
+const emojiData = [
+  { emoji: "🛏️🌙", answer: "静夜思", options: ["静夜思","春晓","相思","江雪"] },
+  { emoji: "🐦🌸🌧️", answer: "春晓", options: ["春晓","清明","绝句","小池"] },
+  { emoji: "🌅⛰️🌊", answer: "登鹳雀楼", options: ["登鹳雀楼","望庐山瀑布","早发白帝城","江雪"] },
+  { emoji: "⛄🐦🎣", answer: "江雪", options: ["江雪","春夜喜雨","凉州词","赋得古原草送别"] },
+  { emoji: "🔥🌿💨", answer: "赋得古原草送别", options: ["赋得古原草送别","悯农","小池","春晓"] },
+  { emoji: "🍷🌙", answer: "水调歌头", options: ["水调歌头","凉州词","送元二使安西","静夜思"] },
+  { emoji: "🦢🦢🦢", answer: "咏鹅", options: ["咏鹅","绝句","春晓","小池"] },
+  { emoji: "🍇🍷", answer: "凉州词", options: ["凉州词","水调歌头","九月九日忆山东兄弟","回乡偶书"] },
+  { emoji: "⛰️🌄🏔️", answer: "望岳", options: ["望岳","登高","春望","望庐山瀑布"] },
+  { emoji: "🌙🐦❄️", answer: "枫桥夜泊", options: ["枫桥夜泊","春晓","江雪","山行"] },
+  { emoji: "🍶🌙🥂", answer: "将进酒", options: ["将进酒","水调歌头","凉州词","客中行"] },
+  { emoji: "🌅🌷🌊", answer: "忆江南", options: ["忆江南","小池","春晓","绝句"] },
+  { emoji: "🦆🌸🎋", answer: "惠崇春江晚景", options: ["惠崇春江晚景","咏鹅","小池","春夜喜雨"] },
+  { emoji: "🍁⛰️🌇", answer: "山行", options: ["山行","枫桥夜泊","清明","早发白帝城"] }
+];
+
+// 看图猜诗 · 困难：水墨画场景 + 自己输入（answers 为可接受答案，作答时自动忽略标点）
+const emojiHardData = [
+  { title: "江雪", author: "柳宗元", hint: "千山鸟飞绝，万径人踪灭", answers: ["江雪","独钓寒江雪","孤舟蓑笠翁","孤舟蓑笠翁独钓寒江雪"],
+    scene: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#e9edf0"/><path d="M0 116 Q46 64 96 102 T186 94 T320 110 L320 200 L0 200 Z" fill="#c3cdd3" opacity="0.75"/><path d="M0 142 Q62 106 132 138 T262 132 T320 140 L320 200 L0 200 Z" fill="#aab8bf" opacity="0.6"/><rect x="0" y="152" width="320" height="48" fill="#d4dee2" opacity="0.85"/><line x1="0" y1="162" x2="320" y2="162" stroke="#b7c3c9" stroke-width="1"/><path d="M146 172 q20 -14 44 -3 l7 7 q-4 6 -12 6 l-39 -4 z" fill="#3a4644"/><circle cx="166" cy="158" r="4.5" fill="#3a4644"/><path d="M160 154 q8 -10 16 0 q-8 8 -16 0 z" fill="#3a4644"/><path d="M164 163 q2 7 0 14" stroke="#3a4644" stroke-width="2.2" fill="none"/><line x1="180" y1="163" x2="208" y2="174" stroke="#3a4644" stroke-width="1.5"/><g fill="#ffffff"><circle cx="30" cy="40" r="1.7"/><circle cx="92" cy="26" r="1.7"/><circle cx="150" cy="52" r="1.7"/><circle cx="224" cy="30" r="1.7"/><circle cx="286" cy="62" r="1.7"/><circle cx="60" cy="74" r="1.7"/><circle cx="200" cy="84" r="1.7"/><circle cx="122" cy="92" r="1.7"/><circle cx="264" cy="100" r="1.7"/><circle cx="42" cy="102" r="1.7"/></g></svg>` },
+
+  { title: "望庐山瀑布", author: "李白", hint: "日照香炉生紫烟，遥看瀑布挂前川", answers: ["望庐山瀑布","飞流直下三千尺","疑是银河落九天","飞流直下三千尺疑是银河落九天"],
+    scene: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#f1ebdb"/><path d="M40 160 L110 40 L142 68 L186 30 L240 86 L300 48 L320 80 L320 200 L0 200 L0 160 Z" fill="#8b958c" opacity="0.6"/><path d="M110 40 L142 68 L186 30 L240 86 L214 120 L156 98 Z" fill="#6b786f" opacity="0.5"/><rect x="176" y="32" width="14" height="118" rx="3" fill="#e6f0f2" opacity="0.95"/><path d="M183 32 q4 14 0 28 t0 28 t0 28" stroke="#c9dce2" stroke-width="2.4" fill="none"/><ellipse cx="183" cy="158" rx="48" ry="16" fill="#f3f7f8" opacity="0.85"/><ellipse cx="183" cy="150" rx="30" ry="10" fill="#ffffff" opacity="0.7"/><path d="M72 156 l-7 -18 h14 z M86 152 l-6 -14 h12 z M100 156 l-7 -18 h14 z" fill="#5c6a60" opacity="0.7"/></svg>` },
+
+  { title: "枫桥夜泊", author: "张继", hint: "月落乌啼霜满天，江枫渔火对愁眠", answers: ["枫桥夜泊","江枫渔火对愁眠","姑苏城外寒山寺","夜半钟声到客船"],
+    scene: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#313a49"/><rect x="0" y="0" width="320" height="132" fill="#3a4455"/><circle cx="64" cy="120" r="30" fill="#efe0b6" opacity="0.92"/><rect x="0" y="150" width="320" height="50" fill="#1f2733"/><path d="M0 154 q14 4 0 8 M30 154 q14 4 0 8 M60 154 q14 4 0 8 M90 154 q14 4 0 8 M120 154 q14 4 0 8 M150 154 q14 4 0 8 M180 154 q14 4 0 8 M210 154 q14 4 0 8 M240 154 q14 4 0 8 M270 154 q14 4 0 8" stroke="#3a4a5c" stroke-width="1.4" fill="none"/><path d="M184 160 q16 -10 34 -2 l6 6 q-4 5 -10 5 l-30 -4 z" fill="#141c26"/><circle cx="200" cy="154" r="3" fill="#e8a94e"/><rect x="238" y="96" width="42" height="54" fill="#161f2a"/><path d="M242 96 L259 76 L276 96 Z" fill="#161f2a"/><path d="M252 84 v14 M259 80 v14" stroke="#0e141c" stroke-width="1.5"/><path d="M268 116 a9 9 0 0 1 0 16 z" fill="#c9a86a"/><path d="M263 124 h14" stroke="#c9a86a" stroke-width="2"/></svg>` },
+
+  { title: "小池", author: "杨万里", hint: "泉眼无声惜细流，树阴照水爱晴柔", answers: ["小池","小荷才露尖尖角","早有蜻蜓立上头","小荷才露尖尖角早有蜻蜓立上头"],
+    scene: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#eef4ef"/><ellipse cx="160" cy="120" rx="170" ry="30" fill="#d3e6e0" opacity="0.5"/><rect x="0" y="128" width="320" height="72" fill="#bfd8d2" opacity="0.85"/><path d="M0 134 q16 4 0 8 M32 134 q16 4 0 8 M64 134 q16 4 0 8 M96 134 q16 4 0 8 M128 134 q16 4 0 8 M160 134 q16 4 0 8 M192 134 q16 4 0 8 M224 134 q16 4 0 8 M256 134 q16 4 0 8 M288 134 q16 4 0 8" stroke="#9fc7bf" stroke-width="1.4" fill="none"/><ellipse cx="116" cy="156" rx="44" ry="16" fill="#7fb98b"/><path d="M188 158 q-5 -40 16 -52 q12 12 2 50 z" fill="#5aa76b"/><line x1="202" y1="102" x2="198" y2="122" stroke="#8a5a3a" stroke-width="2.2"/><circle cx="202" cy="98" r="4.5" fill="#4a7c59"/><path d="M200 96 l-16 -10 M200 96 l16 -10" stroke="#9fd0e0" stroke-width="1.8" fill="none" opacity="0.95"/><circle cx="198" cy="122" r="1.6" fill="#8a5a3a"/></svg>` },
+
+  { title: "登鹳雀楼", author: "王之涣", hint: "白日依山尽，黄河入海流", answers: ["登鹳雀楼","白日依山尽","黄河入海流","欲穷千里目","更上一层楼"],
+    scene: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#f4e9d0"/><circle cx="214" cy="82" r="36" fill="#c8512e" opacity="0.92"/><path d="M0 118 Q60 70 130 104 T260 96 T320 110 L320 200 L0 200 Z" fill="#a08b6e" opacity="0.7"/><path d="M0 146 Q82 110 170 138 T320 134 L320 200 L0 200 Z" fill="#84725a" opacity="0.7"/><rect x="248" y="70" width="18" height="30" fill="#6b5a45"/><path d="M244 70 L257 58 L270 70 Z" fill="#6b5a45"/><rect x="0" y="168" width="320" height="32" fill="#c9a86a" opacity="0.5"/><path d="M110 172 q7 4 0 8 M150 172 q7 4 0 8 M190 172 q7 4 0 8 M230 172 q7 4 0 8 M70 172 q7 4 0 8" stroke="#b8914f" stroke-width="2" fill="none"/></svg>` },
+
+  { title: "春晓", author: "孟浩然", hint: "春眠不觉晓，处处闻啼鸟", answers: ["春晓","春眠不觉晓","处处闻啼鸟","夜来风雨声","花落知多少"],
+    scene: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#f5efe2"/><path d="M30 90 q50 -26 110 -10 q70 18 130 -12" stroke="#8a6b4a" stroke-width="5" fill="none"/><path d="M60 84 q-10 -16 4 -22 M100 78 q-8 -14 2 -20 M150 74 q-8 -14 2 -20 M210 80 q-8 -14 2 -20" stroke="#8a6b4a" stroke-width="2" fill="none"/><g fill="#e8a6b0"><circle cx="58" cy="60" r="7"/><circle cx="98" cy="52" r="7"/><circle cx="150" cy="50" r="7"/><circle cx="210" cy="58" r="7"/><circle cx="72" cy="70" r="6"/><circle cx="120" cy="62" r="6"/><circle cx="176" cy="60" r="6"/></g><g fill="#d98a98"><circle cx="64" cy="60" r="3"/><circle cx="102" cy="52" r="3"/><circle cx="150" cy="50" r="3"/><circle cx="210" cy="58" r="3"/></g><ellipse cx="258" cy="104" rx="11" ry="9" fill="#5c6a60"/><circle cx="263" cy="96" r="5" fill="#5c6a60"/><path d="M266 94 l3 -3 M259 94 l-3 -3" stroke="#2c2a26" stroke-width="1" fill="none"/><path d="M268 104 l8 4" stroke="#5c6a60" stroke-width="2" fill="none"/><g fill="#e8a6b0"><circle cx="130" cy="122" r="3"/><circle cx="170" cy="130" r="3"/><circle cx="100" cy="142" r="3"/><circle cx="200" cy="138" r="3"/></g></svg>` },
+
+  { title: "悯农", author: "李绅", hint: "锄禾日当午，汗滴禾下土", answers: ["悯农","锄禾日当午","汗滴禾下土","谁知盘中餐","粒粒皆辛苦"],
+    scene: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#f6ead0"/><circle cx="160" cy="60" r="30" fill="#e09a3e" opacity="0.95"/><g stroke="#e09a3e" stroke-width="2" opacity="0.7"><path d="M120 60 h-14 M200 60 h14 M160 20 v-14 M160 100 v14 M132 32 l-10 -10 M188 32 l10 -10 M132 88 l-10 10 M188 88 l10 10"/></g><rect x="0" y="132" width="320" height="68" fill="#c9a86a"/><path d="M0 148 q40 6 0 12 M40 148 q40 6 0 12 M80 148 q40 6 0 12 M120 148 q40 6 0 12 M160 148 q40 6 0 12 M200 148 q40 6 0 12 M240 148 q40 6 0 12 M280 148 q40 6 0 12" stroke="#a8844c" stroke-width="2" fill="none"/><g fill="#5b7a4f"><path d="M40 132 l-3 -12 h6 z M80 132 l-3 -12 h6 z M120 132 l-3 -12 h6 z M160 132 l-3 -12 h6 z M200 132 l-3 -12 h6 z M240 132 l-3 -12 h6 z M280 132 l-3 -12 h6 z"/></g><circle cx="205" cy="120" r="7" fill="#3a3a3a"/><path d="M203 128 q-2 14 6 24" stroke="#3a3a3a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M211 150 l16 6 M211 150 l-14 6" stroke="#3a3a3a" stroke-width="5" fill="none" stroke-linecap="round"/><line x1="224" y1="148" x2="256" y2="130" stroke="#8a6b4a" stroke-width="3" stroke-linecap="round"/><path d="M252 126 l10 -8 l4 6 l-10 8 z" fill="#6b6b6b"/></svg>` },
+
+  { title: "忆江南", author: "白居易", hint: "江南好，风景旧曾谙", answers: ["忆江南","日出江花红胜火","春来江水绿如蓝"],
+    scene: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#f7eed9"/><circle cx="90" cy="120" r="34" fill="#e0563b" opacity="0.92"/><rect x="0" y="140" width="320" height="60" fill="#8fc6b8" opacity="0.85"/><path d="M0 146 q16 5 0 10 M32 146 q16 5 0 10 M64 146 q16 5 0 10 M96 146 q16 5 0 10 M128 146 q16 5 0 10 M160 146 q16 5 0 10 M192 146 q16 5 0 10 M224 146 q16 5 0 10 M256 146 q16 5 0 10 M288 146 q16 5 0 10" stroke="#6fb2a4" stroke-width="1.6" fill="none"/><g fill="#d94f4f"><circle cx="30" cy="140" r="6"/><circle cx="52" cy="138" r="5"/><circle cx="120" cy="140" r="6"/><circle cx="145" cy="138" r="5"/><circle cx="200" cy="140" r="6"/><circle cx="228" cy="138" r="5"/><circle cx="280" cy="140" r="6"/></g><g fill="#5b7a4f"><path d="M20 140 l-4 -14 h8 z M100 140 l-4 -14 h8 z M180 140 l-4 -14 h8 z M260 140 l-4 -14 h8 z M300 140 l-4 -14 h8 z"/></g></svg>` }
+];
+
+// 诗词赏析库
+const poemData = [
+  { title: "静夜思", author: "李白", dynasty: "唐", text: ["床前明月光，疑是地上霜。", "举头望明月，低头思故乡。"], translation: "明亮的月光洒在床前，好像地上泛起了一层白霜。抬头望着天上的明月，低下头思念起远方的故乡。", appreciation: "短短二十字，写尽游子思乡之情。语言朴素自然，却意境深远，是中国人最熟悉的一首唐诗。" },
+  { title: "春晓", author: "孟浩然", dynasty: "唐", text: ["春眠不觉晓，处处闻啼鸟。", "夜来风雨声，花落知多少。"], translation: "春日里贪睡，不知不觉天已破晓，到处都能听见鸟儿的啼叫。想起昨夜的风声雨声，不知花儿被吹落了多少。", appreciation: "写春晨醒来时的所闻所想，清新自然，流露对春天的喜爱和淡淡的惜春之情。" },
+  { title: "登鹳雀楼", author: "王之涣", dynasty: "唐", text: ["白日依山尽，黄河入海流。", "欲穷千里目，更上一层楼。"], translation: "夕阳依傍着西山慢慢落下，滔滔黄河向着大海奔流。想要看到更远的地方，就要再登上一层楼。", appreciation: "前两句写景壮阔，后两句蕴含“站得高才能看得远”的深刻哲理，千古传诵。" },
+  { title: "悯农", author: "李绅", dynasty: "唐", text: ["锄禾日当午，汗滴禾下土。", "谁知盘中餐，粒粒皆辛苦。"], translation: "正午烈日当头，农民还在田里锄草，汗水一滴一滴落进禾苗下的泥土。有谁知道碗里的每一粒饭，都饱含着农民的辛苦呢？", appreciation: "道出粮食的来之不易，教育人们珍惜劳动成果，是流传最广的劝农诗。" },
+  { title: "咏鹅", author: "骆宾王", dynasty: "唐", text: ["鹅鹅鹅，曲项向天歌。", "白毛浮绿水，红掌拨清波。"], translation: "鹅啊鹅，弯曲着脖子对着天空歌唱。雪白的羽毛浮在碧绿的水面上，红色的脚掌拨动着清清的水波。", appreciation: "相传是骆宾王七岁时所作。诗人抓住白鹅的神态与色彩，写得生动活泼，充满童趣。" },
+  { title: "望庐山瀑布", author: "李白", dynasty: "唐", text: ["日照香炉生紫烟，遥看瀑布挂前川。", "飞流直下三千尺，疑是银河落九天。"], translation: "阳光照耀着香炉峰，升起紫色的烟雾；远远看去，瀑布像一条白练挂在江前。水流飞泻直下三千尺，让人怀疑是银河从九重天上落了下来。", appreciation: "想象奇特、夸张大胆，“疑是银河落九天”一句，尽显庐山瀑布的雄奇壮丽，是李白的浪漫主义名篇。" },
+  { title: "绝句", author: "杜甫", dynasty: "唐", text: ["两个黄鹂鸣翠柳，一行白鹭上青天。", "窗含西岭千秋雪，门泊东吴万里船。"], translation: "两只黄鹂在翠绿的柳枝间鸣叫，一行白鹭飞上了蓝天。窗外是西岭千年的积雪，门前停泊着驶往东吴的万里航船。", appreciation: "四句四景，色彩鲜明、动静结合，展现了一幅生机盎然的春日画卷。" },
+  { title: "江雪", author: "柳宗元", dynasty: "唐", text: ["千山鸟飞绝，万径人踪灭。", "孤舟蓑笠翁，独钓寒江雪。"], translation: "所有的山上都不见飞鸟的踪影，所有的路上都不见行人的足迹。只有孤舟上一位披蓑戴笠的老翁，独自在漫天飞雪的寒江上垂钓。", appreciation: "写冬日寂寥之景，借“独钓”的形象，表现诗人孤傲清高、不向现实屈服的品格。" },
+  { title: "回乡偶书", author: "贺知章", dynasty: "唐", text: ["少小离家老大回，乡音无改鬓毛衰。", "儿童相见不相识，笑问客从何处来。"], translation: "年轻时离开家乡，年老才回来，家乡口音没变，两鬓的头发却已斑白。孩子们见了我都不认识，笑着问客人是从哪里来的。", appreciation: "写久客还乡的感慨，幽默之中透出岁月沧桑，令人感慨万千。" },
+  { title: "游子吟", author: "孟郊", dynasty: "唐", text: ["慈母手中线，游子身上衣。", "临行密密缝，意恐迟迟归。", "谁言寸草心，报得三春晖。"], translation: "慈母手中的针线，缝着即将远行的儿子身上的衣服。临行前她密密地缝补，担心儿子迟迟不能归来。谁说小草般微弱的孝心，报答得了春天阳光般温暖的母爱呢？", appreciation: "歌颂伟大无私的母爱，“寸草春晖”从此成为形容母爱的千古名喻。" },
+  { title: "水调歌头·明月几时有", author: "苏轼", dynasty: "宋", text: ["明月几时有？把酒问青天。", "不知天上宫阙，今夕是何年。", "我欲乘风归去，又恐琼楼玉宇，高处不胜寒。", "起舞弄清影，何似在人间。", "人有悲欢离合，月有阴晴圆缺，此事古难全。", "但愿人长久，千里共婵娟。"], translation: "明月是从什么时候开始有的？我端起酒杯遥问青天。不知天上的宫殿，今晚是哪一年。我想乘风归去，又怕那琼楼玉宇太高，经受不住寒冷。在月下起舞、欣赏自己的清影，哪里比得上在人间？人有悲欢离合，月有阴晴圆缺，这种事自古就难以周全。只愿亲人长久平安，即使相隔千里，也能共同欣赏这美好的月光。", appreciation: "中秋怀人之作，意境豪放而旷达。“但愿人长久，千里共婵娟”表达了对亲人最美好的祝愿，成为千古绝唱。" },
+  { title: "相思", author: "王维", dynasty: "唐", text: ["红豆生南国，春来发几枝。", "愿君多采撷，此物最相思。"], translation: "红豆生长在南方，春天来了，它发出几枝新芽。愿你多采摘一些，它最能寄托相思之情。", appreciation: "借红豆寄托相思，语浅情深，含蓄隽永，是咏物寄情的佳作。" },
+  { title: "春夜喜雨", author: "杜甫", dynasty: "唐", text: ["好雨知时节，当春乃发生。", "随风潜入夜，润物细无声。"], translation: "好雨懂得时令节气，春天一到就降临人间。它伴着春风在夜里悄悄飘洒，滋润万物而细无声息。", appreciation: "运用拟人手法写春雨，细致入微，生动传神，表达了诗人对春雨的喜悦之情。" },
+  { title: "赋得古原草送别", author: "白居易", dynasty: "唐", text: ["离离原上草，一岁一枯荣。", "野火烧不尽，春风吹又生。"], translation: "原野上长满了茂盛的青草，一年一度枯萎又繁荣。野火无法把它们烧尽，春风吹来，它们又蓬勃生长。", appreciation: "借野草歌咏顽强不屈的生命力，“野火烧不尽，春风吹又生”激励了无数人。" },
+  { title: "清明", author: "杜牧", dynasty: "唐", text: ["清明时节雨纷纷，路上行人欲断魂。", "借问酒家何处有，牧童遥指杏花村。"], translation: "清明时节细雨纷纷飘洒，路上的行人个个愁绪万千、失魂落魄。请问哪里有卖酒的地方？牧童远远地指向了杏花村。", appreciation: "写清明雨景与行人愁绪，意境清新，含蓄蕴藉，历来为人称道。" },
+  { title: "小池", author: "杨万里", dynasty: "宋", text: ["泉眼无声惜细流，树阴照水爱晴柔。", "小荷才露尖尖角，早有蜻蜓立上头。"], translation: "泉眼悄然无声，像珍惜那细细的水流；树阴映在水面，喜爱这晴天的温柔。小荷叶才露出尖尖的角，早有蜻蜓停立在上头。", appreciation: "捕捉初夏小池中的细微景物，生机盎然，充满生活情趣。" },
+  { title: "早发白帝城", author: "李白", dynasty: "唐", text: ["朝辞白帝彩云间，千里江陵一日还。", "两岸猿声啼不住，轻舟已过万重山。"], translation: "清晨辞别彩云缭绕的白帝城，千里之外的江陵一天就能到达。两岸猿猴的啼叫声连绵不断，轻快的小船已经驶过了万重山峦。", appreciation: "写行舟之轻快、心情之愉悦，节奏明快，传达出诗人遇赦后的轻松喜悦。" },
+  { title: "九月九日忆山东兄弟", author: "王维", dynasty: "唐", text: ["独在异乡为异客，每逢佳节倍思亲。", "遥知兄弟登高处，遍插茱萸少一人。"], translation: "独自一人在他乡作客，每逢佳节就加倍思念亲人。遥想家乡的兄弟们登高时，都插上茱萸，却少了我一个人。", appreciation: "“每逢佳节倍思亲”道出了古今游子的共同心声，成为思亲的千古名句。" },
+  { title: "凉州词", author: "王翰", dynasty: "唐", text: ["葡萄美酒夜光杯，欲饮琵琶马上催。", "醉卧沙场君莫笑，古来征战几人回。"], translation: "夜光杯中斟满了葡萄美酒，正要开怀畅饮，琵琶声却催人赶快上马出征。醉倒在沙场上请你不要见笑，自古出征打仗，能有几个人活着回来？", appreciation: "写边塞将士的豪迈与悲壮，情感复杂深沉，气势雄浑，是边塞诗中的杰作。" },
+  { title: "送元二使安西", author: "王维", dynasty: "唐", text: ["渭城朝雨浥轻尘，客舍青青柳色新。", "劝君更尽一杯酒，西出阳关无故人。"], translation: "渭城的清晨，细雨湿润了路上的尘土；客舍旁的柳树，被雨水洗得格外青翠。请再喝一杯酒吧，西出阳关之后就再也见不到老朋友了。", appreciation: "送别诗中的千古名篇，“劝君更尽一杯酒，西出阳关无故人”情深意重，令人动容。" },
+
+  { title: "望岳", author: "杜甫", dynasty: "唐", text: ["岱宗夫如何？齐鲁青未了。", "造化钟神秀，阴阳割昏晓。", "荡胸生曾云，决眦入归鸟。", "会当凌绝顶，一览众山小。"], translation: "泰山是什么样的呢？从齐到鲁都能望见它苍翠绵延。大自然把神奇秀美都汇聚在这里，山南山北被分割成一明一暗。层云涌起令人心胸激荡，极目远望归鸟入山。一定要登上泰山之顶，俯瞰群山，才知它们都显得那样渺小。", appreciation: "写登泰山之景与壮志，末句“会当凌绝顶，一览众山小”气魄宏大，激励人们勇于攀登、追求高远。" },
+  { title: "送杜少府之任蜀州", author: "王勃", dynasty: "唐", text: ["城阙辅三秦，风烟望五津。", "与君离别意，同是宦游人。", "海内存知己，天涯若比邻。", "无为在歧路，儿女共沾巾。"], translation: "长安城由三秦之地护卫，遥望蜀州只见风烟迷蒙。与你离别心中无限感慨，因为我们同是在外为官的人。只要四海之内有知心朋友，即使远在天涯也如同近邻。不要在分手的路口，像小儿女那样泪湿衣巾。", appreciation: "“海内存知己，天涯若比邻”以旷达胸襟写离别，一扫送别诗的悲切，成为千古名句。" },
+  { title: "使至塞上", author: "王维", dynasty: "唐", text: ["单车欲问边，属国过居延。", "征蓬出汉塞，归雁入胡天。", "大漠孤烟直，长河落日圆。", "萧关逢候骑，都护在燕然。"], translation: "乘单车去慰问边关，途经居延属国。像飘飞的蓬草出了汉塞，像北归的大雁飞入胡天。大漠中一缕孤烟笔直上升，长河之上落日浑圆。在萧关遇到侦察骑兵，得知统帅正在燕然前线。", appreciation: "“大漠孤烟直，长河落日圆”以简练的线条勾勒出塞外壮阔风光，被誉为“诗中有画”的典范。" },
+  { title: "山居秋暝", author: "王维", dynasty: "唐", text: ["空山新雨后，天气晚来秋。", "明月松间照，清泉石上流。", "竹喧归浣女，莲动下渔舟。", "随意春芳歇，王孙自可留。"], translation: "空寂的山中刚下过一场雨，傍晚的天气已带秋凉。明月从松林间洒下清辉，清泉在山石上淙淙流淌。竹林喧响是浣衣女子归来，莲叶轻动是渔船顺流而下。任凭春天的芳华消歇，这山中秋景也值得久留。", appreciation: "诗中有画，动静相宜，展现雨后秋山的清幽明净，寄托诗人高洁的志趣。" },
+  { title: "饮酒（其五）", author: "陶渊明", dynasty: "晋", text: ["结庐在人境，而无车马喧。", "问君何能尔？心远地自偏。", "采菊东篱下，悠然见南山。", "山气日夕佳，飞鸟相与还。", "此中有真意，欲辨已忘言。"], translation: "把房屋建在人来人往的地方，却听不到车马的喧闹。问我为什么能这样？心志高远，自然觉得所处僻静。在东篱下采摘菊花，悠然间望见南山。傍晚山色美好，飞鸟结伴归巢。这其中有人生的真谛，想要辨明却已忘了如何言说。", appreciation: "“采菊东篱下，悠然见南山”写淡泊闲适的田园之乐，是陶渊明隐逸情怀的代表。" },
+  { title: "游山西村", author: "陆游", dynasty: "宋", text: ["莫笑农家腊酒浑，丰年留客足鸡豚。", "山重水复疑无路，柳暗花明又一村。", "箫鼓追随春社近，衣冠简朴古风存。", "从今若许闲乘月，拄杖无时夜叩门。"], translation: "不要笑话农家腊月酿的酒浑浊，丰年里他们用丰盛的鸡豚待客。山峦重叠、溪水环绕，正担心无路可走，忽见柳绿花明处又出现一个村庄。箫鼓声起，春社临近，人们衣冠简朴，古风犹存。今后若得空闲乘月出游，我会拄着拐杖随时来敲门。", appreciation: "“山重水复疑无路，柳暗花明又一村”既写景又含哲理，鼓励人在困境中看到希望。" },
+  { title: "无题", author: "李商隐", dynasty: "唐", text: ["相见时难别亦难，东风无力百花残。", "春蚕到死丝方尽，蜡炬成灰泪始干。", "晓镜但愁云鬓改，夜吟应觉月光寒。", "蓬山此去无多路，青鸟殷勤为探看。"], translation: "相见难得，离别更觉难舍，东风无力，百花凋残。春蚕直到死才吐尽丝，蜡烛烧成灰泪才流干。清晨照镜只愁两鬓添白，夜里吟诗应觉月光清寒。蓬莱山离此并不遥远，请青鸟殷勤地替我探望。", appreciation: "“春蚕到死丝方尽，蜡炬成灰泪始干”以蚕丝蜡泪喻至死不渝的深情，是李商隐爱情诗的名句。" },
+  { title: "枫桥夜泊", author: "张继", dynasty: "唐", text: ["月落乌啼霜满天，江枫渔火对愁眠。", "姑苏城外寒山寺，夜半钟声到客船。"], translation: "月亮落下，乌鸦啼叫，寒霜满天；面对江边的枫树和点点渔火，旅人满怀愁绪难以入眠。姑苏城外寒山寺的钟声，在夜半时分传到了客船上。", appreciation: "写夜泊枫桥的羁旅愁思，动静结合，意境清远，“夜半钟声”更添幽寂。" },
+  { title: "将进酒（节选）", author: "李白", dynasty: "唐", text: ["君不见黄河之水天上来，奔流到海不复回。", "君不见高堂明镜悲白发，朝如青丝暮成雪。", "人生得意须尽欢，莫使金樽空对月。", "天生我材必有用，千金散尽还复来。"], translation: "你没见那黄河之水从天上奔来，奔向大海不再回头。你没见高堂明镜里为白发而悲伤，早晨还是青丝，傍晚已成白雪。人生得意时就应尽情欢乐，别让金杯空对着明月。天生我材必定有用，千金散尽还能再挣回来。", appreciation: "豪放洒脱，气势磅礴，“天生我材必有用”充满自信，激励了无数后人。" },
+  { title: "登高", author: "杜甫", dynasty: "唐", text: ["风急天高猿啸哀，渚清沙白鸟飞回。", "无边落木萧萧下，不尽长江滚滚来。", "万里悲秋常作客，百年多病独登台。", "艰难苦恨繁霜鬓，潦倒新停浊酒杯。"], translation: "风急天高，猿猴悲啼；水清沙白，鸟儿回旋。无边无际的落叶萧萧落下，奔流不息的长江滚滚而来。常年漂泊万里作客他乡，暮年多病独自登上高台。历尽艰辛两鬓如霜，穷困潦倒连浊酒也停了。", appreciation: "写秋日登高所见所感，意境苍凉雄浑，被誉为“古今七律第一”。" },
+  { title: "题西林壁", author: "苏轼", dynasty: "宋", text: ["横看成岭侧成峰，远近高低各不同。", "不识庐山真面目，只缘身在此山中。"], translation: "从正面看是连绵的山岭，从侧面看是陡峭的山峰，远近高低看它，姿态各不相同。认不清庐山的真面目，只因为自己就身在这座山之中。", appreciation: "借庐山说明“当局者迷”的哲理，只有跳出局限，才能看清事物的全貌。" },
+  { title: "晓出净慈寺送林子方", author: "杨万里", dynasty: "宋", text: ["毕竟西湖六月中，风光不与四时同。", "接天莲叶无穷碧，映日荷花别样红。"], translation: "到底是六月里的西湖，风光与其他时节大不相同。接天的莲叶一片碧绿无边，映着朝阳的荷花格外红艳。", appreciation: "写西湖夏日荷花之美，色彩鲜明，“接天莲叶无穷碧，映日荷花别样红”成为咏荷名句。" },
+  { title: "观书有感", author: "朱熹", dynasty: "宋", text: ["半亩方塘一鉴开，天光云影共徘徊。", "问渠那得清如许？为有源头活水来。"], translation: "半亩见方的池塘像一面镜子打开，天光和云影在水中徘徊。问它为什么这样清澈？因为源头有活水不断流来。", appreciation: "借池塘清澈喻读书明理，“为有源头活水来”说明要不断学习，才能保持思想常新。" },
+  { title: "念奴娇·赤壁怀古（节选）", author: "苏轼", dynasty: "宋", text: ["大江东去，浪淘尽，千古风流人物。", "故垒西边，人道是，三国周郎赤壁。", "乱石穿空，惊涛拍岸，卷起千堆雪。", "江山如画，一时多少豪杰。"], translation: "长江滚滚东去，浪涛淘尽了千古的英雄人物。旧营垒的西边，人们说那就是三国周瑜大破曹军的赤壁。乱石直插云霄，惊涛拍打江岸，卷起千万堆雪白的浪花。江山如画，一时之间涌现出多少英雄豪杰。", appreciation: "豪放词的代表作，写赤壁雄景、怀古伤今，气势雄浑，开一代词风。" },
+  { title: "声声慢（节选）", author: "李清照", dynasty: "宋", text: ["寻寻觅觅，冷冷清清，凄凄惨惨戚戚。", "乍暖还寒时候，最难将息。", "三杯两盏淡酒，怎敌他、晚来风急。", "雁过也，正伤心，却是旧时相识。"], translation: "寻寻觅觅，四周冷冷清清，心中凄凄惨惨戚戚。在这忽暖忽寒的时候，最难调养休息。喝几杯淡酒，又怎能抵挡那傍晚的急风。大雁飞过，正令人伤心，却还是旧日相识。", appreciation: "婉约词名篇，开篇连用十四个叠字，写尽国破家亡后的孤寂凄苦，千古称绝。" }
+];
+
+/* ===== 扩充诗词库（紧凑格式：[题名, 作者, 朝代, 诗句数组, 译文, 赏析]） ===== */
+const poemExtra = [];
+function addPoems(rows) {
+  rows.forEach(r => poemExtra.push({ title: r[0], author: r[1], dynasty: r[2], text: r[3], translation: r[4], appreciation: r[5] }));
+}
+addPoems([
+  ["鹿柴","王维","唐",["空山不见人，但闻人语响。","返景入深林，复照青苔上。"],"空山中看不见人影，只听见人说话的声音。夕阳余晖照进幽深树林，又映在青苔上。","写空山深林的幽静，以动衬静。"],
+  ["竹里馆","王维","唐",["独坐幽篁里，弹琴复长啸。","深林人不知，明月来相照。"],"独自坐在幽静的竹林里，一边弹琴一边长啸。深林里无人知晓，只有明月来相照。","写竹林独处的闲适与高洁。"],
+  ["鸟鸣涧","王维","唐",["人闲桂花落，夜静春山空。","月出惊山鸟，时鸣春涧中。"],"人闲静时桂花飘落，春夜寂静山谷空幽。月亮升起惊动了山鸟，不时在山涧中鸣叫。","以动衬静，写春山月夜的清幽。"],
+  ["杂诗","王维","唐",["君自故乡来，应知故乡事。","来日绮窗前，寒梅著花未？"],"你从故乡来，应当知道故乡的事。来的时候我家雕花窗前，那株寒梅开花了没有？","借问寒梅寄托思乡之情，含蓄动人。"],
+  ["芙蓉楼送辛渐","王昌龄","唐",["寒雨连江夜入吴，平明送客楚山孤。","洛阳亲友如相问，一片冰心在玉壶。"],"寒雨洒满江面连夜来到吴地，清晨送客时楚山显得孤寂。洛阳亲友若问起我，就说我心如冰心玉壶般清白。","“一片冰心在玉壶”表明心志高洁。"],
+  ["出塞","王昌龄","唐",["秦时明月汉时关，万里长征人未还。","但使龙城飞将在，不教胡马度阴山。"],"还是秦汉时的明月和边关，万里征战的将士仍未归来。只要有李广那样的飞将军在，就不会让胡人骑兵越过阴山。","写边塞战争与渴望良将之情，气势雄浑。"],
+  ["从军行","王昌龄","唐",["青海长云暗雪山，孤城遥望玉门关。","黄沙百战穿金甲，不破楼兰终不还。"],"青海湖上乌云笼罩雪山，孤城遥望玉门关。身经百战铠甲磨穿，不攻破楼兰誓不还乡。","写将士戍边的豪情壮志。"],
+  ["凉州词","王之涣","唐",["黄河远上白云间，一片孤城万仞山。","羌笛何须怨杨柳，春风不度玉门关。"],"黄河远上直入白云之间，孤城一座坐落在万仞高山中。羌笛何必吹奏哀怨的杨柳曲，春风是吹不到玉门关的。","写边塞荒凉与戍卒乡愁。"],
+  ["塞下曲","卢纶","唐",["月黑雁飞高，单于夜遁逃。","欲将轻骑逐，大雪满弓刀。"],"月黑之夜大雁高飞，敌军趁着夜色逃跑。正要率领轻骑追赶，大雪落满了弓刀。","写雪夜追击的英武场景。"],
+  ["江南春","杜牧","唐",["千里莺啼绿映红，水村山郭酒旗风。","南朝四百八十寺，多少楼台烟雨中。"],"千里江南莺啼绿映红花，水村山城酒旗迎风招展。南朝留下的无数古寺，多少楼台笼罩在烟雨之中。","写江南春景，明丽之中含历史感慨。"],
+  ["山行","杜牧","唐",["远上寒山石径斜，白云生处有人家。","停车坐爱枫林晚，霜叶红于二月花。"],"沿着石径斜上寒山，白云生起处有人家。停下马车只因喜爱枫林晚景，霜染的枫叶比二月花还红。","写秋山枫叶之美，色彩绚烂。"],
+  ["泊秦淮","杜牧","唐",["烟笼寒水月笼沙，夜泊秦淮近酒家。","商女不知亡国恨，隔江犹唱后庭花。"],"烟雾笼罩寒水，月光笼罩沙岸，夜泊秦淮靠近酒家。歌女不懂亡国之恨，隔着江还在唱《后庭花》。","借古讽今，表达对国事的忧愤。"],
+  ["赤壁","杜牧","唐",["折戟沉沙铁未销，自将磨洗认前朝。","东风不与周郎便，铜雀春深锁二乔。"],"折断的戟沉在沙中还未销蚀，磨洗后认出是前朝遗物。若不是东风帮了周瑜，二乔怕要被锁在铜雀台了。","借赤壁怀古，发历史兴亡之叹。"],
+  ["秋夕","杜牧","唐",["银烛秋光冷画屏，轻罗小扇扑流萤。","天阶夜色凉如水，卧看牵牛织女星。"],"银烛秋光映着清冷的画屏，手持罗扇扑打流萤。宫阶夜色清凉如水，卧看天上的牵牛织女星。","写宫女秋夜的孤寂幽怨。"],
+  ["早春呈水部张十八员外","韩愈","唐",["天街小雨润如酥，草色遥看近却无。","最是一年春好处，绝胜烟柳满皇都。"],"京城细雨滋润如酥油，草色远看青青近看却无。这是一年春光最好的时候，远胜过满城烟柳的晚春。","写早春的清新生机。"],
+  ["晚春","韩愈","唐",["草树知春不久归，百般红紫斗芳菲。","杨花榆荚无才思，惟解漫天作雪飞。"],"花草树木知道春天就要归去，万紫千红争奇斗艳。杨花榆荚没有才思，只懂得漫天飞舞如雪。","写晚春惜春，暗含哲理。"],
+  ["夜雨寄北","李商隐","唐",["君问归期未有期，巴山夜雨涨秋池。","何当共剪西窗烛，却话巴山夜雨时。"],"你问我归期我还没有归期，巴山夜雨涨满了秋池。何时能一起在西窗下剪烛夜谈，再说起今夜巴山的雨。","写羁旅思念，含蓄深情。"],
+  ["嫦娥","李商隐","唐",["云母屏风烛影深，长河渐落晓星沉。","嫦娥应悔偷灵药，碧海青天夜夜心。"],"云母屏风上烛影幽深，银河渐落晨星隐没。嫦娥该后悔偷吃了灵药，独守碧海青天夜夜寂寞。","借嫦娥写孤寂与悔恨。"],
+  ["登乐游原","李商隐","唐",["向晚意不适，驱车登古原。","夕阳无限好，只是近黄昏。"],"傍晚心情不佳，驱车登上乐游原。夕阳无限美好，只是已接近黄昏。","“夕阳无限好”写景又含迟暮之叹。"],
+  ["咏柳","贺知章","唐",["碧玉妆成一树高，万条垂下绿丝绦。","不知细叶谁裁出，二月春风似剪刀。"],"高高的柳树像碧玉妆成，垂下万条绿色丝带。不知这细叶是谁裁出，原来是二月的春风像剪刀。","用比喻写柳，构思新颖。"],
+  ["春夜洛城闻笛","李白","唐",["谁家玉笛暗飞声，散入春风满洛城。","此夜曲中闻折柳，何人不起故园情。"],"谁家的玉笛悄悄飞出声来，随春风飘满洛阳城。今夜听曲中奏起《折杨柳》，谁不泛起思乡之情。","闻笛起乡愁，余韵悠长。"],
+  ["独坐敬亭山","李白","唐",["众鸟高飞尽，孤云独去闲。","相看两不厌，只有敬亭山。"],"群鸟高飞远去，孤云独自悠闲飘走。彼此相看不厌倦的，只有这敬亭山。","写独处时与山水相契的孤高心境。"],
+  ["望天门山","李白","唐",["天门中断楚江开，碧水东流至此回。","两岸青山相对出，孤帆一片日边来。"],"天门山被楚江从中断开，碧水东流到此回旋。两岸青山相对而出，一叶孤帆从日边驶来。","写长江天门山的雄奇景色。"],
+  ["黄鹤楼送孟浩然之广陵","李白","唐",["故人西辞黄鹤楼，烟花三月下扬州。","孤帆远影碧空尽，唯见长江天际流。"],"老朋友在黄鹤楼与我辞别，在烟花三月顺流去扬州。孤帆远影消失在碧空尽头，只见长江向天边奔流。","写送别，意境开阔深情。"],
+  ["赠汪伦","李白","唐",["李白乘舟将欲行，忽闻岸上踏歌声。","桃花潭水深千尺，不及汪伦送我情。"],"我乘船正要出发，忽听岸上传来踏歌声。桃花潭水纵有千尺深，也比不上汪伦送我的情谊。","以潭水喻友情，直白真挚。"],
+  ["闻王昌龄左迁龙标遥有此寄","李白","唐",["杨花落尽子规啼，闻道龙标过五溪。","我寄愁心与明月，随风直到夜郎西。"],"杨花落尽子规啼叫，听说你被贬龙标经过五溪。我把愁心托付给明月，随风一直陪你到夜郎之西。","借明月寄思念，情真意切。"],
+  ["峨眉山月歌","李白","唐",["峨眉山月半轮秋，影入平羌江水流。","夜发清溪向三峡，思君不见下渝州。"],"峨眉山上的半轮秋月，月影映入平羌江水。夜里从清溪出发去三峡，思念你却不能相见，一路下行到渝州。","写月夜行舟的旅途与怀人。"],
+  ["客中行","李白","唐",["兰陵美酒郁金香，玉碗盛来琥珀光。","但使主人能醉客，不知何处是他乡。"],"兰陵美酒散发着郁金香的芬芳，玉碗盛来泛着琥珀光。只要主人能让我沉醉，就不知道哪里是异乡了。","写客居的豪爽洒脱。"],
+  ["夜宿山寺","李白","唐",["危楼高百尺，手可摘星辰。","不敢高声语，恐惊天上人。"],"高楼有百尺高，伸手仿佛能摘下星辰。不敢高声说话，怕惊动天上的仙人。","极写楼高，想象奇特。"],
+  ["古朗月行（节选）","李白","唐",["小时不识月，呼作白玉盘。","又疑瑶台镜，飞在青云端。"],"小时候不认识月亮，把它叫作白玉盘。又怀疑是瑶台的明镜，飞挂在青云之上。","写童真对月亮的想象。"],
+  ["月下独酌（节选）","李白","唐",["花间一壶酒，独酌无相亲。","举杯邀明月，对影成三人。"],"花间放一壶酒，独自饮酒没有亲近的人。举起酒杯邀请明月，加上影子就成了三人。","写孤独中的旷达与奇想。"],
+  ["渡荆门送别","李白","唐",["渡远荆门外，来从楚国游。","山随平野尽，江入大荒流。","月下飞天镜，云生结海楼。","仍怜故乡水，万里送行舟。"],"远渡到荆门之外，来到楚地游览。山随着平野而尽，江水流入广阔原野。月映江中如天镜飞下，云生结成海市蜃楼。仍怜爱故乡的江水，不远万里送我远行。","写离乡远游，末句思乡。"],
+  ["送友人","李白","唐",["青山横北郭，白水绕东城。","此地一为别，孤蓬万里征。","浮云游子意，落日故人情。","挥手自兹去，萧萧班马鸣。"],"青山横卧北城，白水环绕东城。此地一别，就像孤蓬远行万里。浮云如游子行踪，落日含故人深情。挥手从此离去，马儿萧萧长鸣。","写送别的深情与怅惘。"],
+  ["春望","杜甫","唐",["国破山河在，城春草木深。","感时花溅泪，恨别鸟惊心。","烽火连三月，家书抵万金。","白头搔更短，浑欲不胜簪。"],"国都沦陷山河依旧，春日城中草木丛生。感伤时局花也溅泪，恨别离鸟鸣也惊心。战火连绵数月，家书抵得上万金。白发越搔越短，几乎插不住簪子。","写战乱中的家国之痛，沉郁顿挫。"],
+  ["绝句·迟日江山丽","杜甫","唐",["迟日江山丽，春风花草香。","泥融飞燕子，沙暖睡鸳鸯。"],"春日江山秀丽，春风送来花草香。泥土融化燕子飞舞，沙洲温暖鸳鸯酣睡。","写春日明丽祥和之景。"],
+  ["江畔独步寻花","杜甫","唐",["黄四娘家花满蹊，千朵万朵压枝低。","留连戏蝶时时舞，自在娇莺恰恰啼。"],"黄四娘家的小路开满花，千朵万朵压弯了枝条。蝴蝶留连飞舞，黄莺自在啼叫。","写繁花似锦的春景与喜悦。"],
+  ["赠花卿","杜甫","唐",["锦城丝管日纷纷，半入江风半入云。","此曲只应天上有，人间能得几回闻。"],"锦城的丝竹日日纷纷，一半随江风一半入云。这样的曲子只应天上才有，人间能听到几回。","赞美音乐之妙，含蓄讽谏。"],
+  ["江南逢李龟年","杜甫","唐",["岐王宅里寻常见，崔九堂前几度闻。","正是江南好风景，落花时节又逢君。"],"曾在岐王宅里常见你，崔九堂前多次听你歌唱。如今正是江南好风景，落花时节又与你重逢。","写重逢中的沧桑之感。"],
+  ["蜀相","杜甫","唐",["丞相祠堂何处寻，锦官城外柏森森。","映阶碧草自春色，隔叶黄鹂空好音。","三顾频烦天下计，两朝开济老臣心。","出师未捷身先死，长使英雄泪满襟。"],"诸葛丞相的祠堂到哪里找？锦官城外柏树森森。阶前碧草自呈春色，叶间黄鹂空有好音。三顾茅庐为天下大计，辅佐两朝尽老臣忠心。出师未胜却先去世，长使英雄泪湿衣襟。","追怀诸葛亮，深沉悲壮。"],
+  ["闻官军收河南河北","杜甫","唐",["剑外忽传收蓟北，初闻涕泪满衣裳。","却看妻子愁何在，漫卷诗书喜欲狂。","白日放歌须纵酒，青春作伴好还乡。","即从巴峡穿巫峡，便下襄阳向洛阳。"],"剑外忽然传来收复蓟北的消息，初闻时涕泪沾湿衣裳。回头看妻子愁容已消，胡乱卷起诗书喜极欲狂。白日放歌纵情饮酒，趁着春光好还乡。就从巴峡穿过巫峡，再下襄阳直奔洛阳。","写闻捷后的狂喜，被称为“生平第一快诗”。"],
+  ["过故人庄","孟浩然","唐",["故人具鸡黍，邀我至田家。","绿树村边合，青山郭外斜。","开轩面场圃，把酒话桑麻。","待到重阳日，还来就菊花。"],"老朋友准备了鸡和黄米饭，邀我到田家做客。绿树环绕村边，青山斜倚城外。开窗对着场院菜圃，把酒闲谈农事。等到重阳那天，还来共赏菊花。","写田园生活的质朴与友情。"],
+  ["宿建德江","孟浩然","唐",["移舟泊烟渚，日暮客愁新。","野旷天低树，江清月近人。"],"移舟停靠在烟雾笼罩的小洲，日暮时分新添客愁。原野空旷天比树低，江水清澈月近人。","写羁旅之愁，情景交融。"],
+  ["望洞庭湖赠张丞相","孟浩然","唐",["八月湖水平，涵虚混太清。","气蒸云梦泽，波撼岳阳城。"],"八月洞庭湖水与岸齐平，水天相接混为一体。水汽蒸腾笼罩云梦泽，波涛摇撼岳阳城。","写洞庭湖的浩瀚气势。"],
+  ["望月怀远","张九龄","唐",["海上生明月，天涯共此时。","情人怨遥夜，竟夕起相思。"],"海上明月升起，天涯的人此刻共赏。有情人怨恨长夜漫漫，整夜泛起相思。","“海上生明月，天涯共此时”千古传诵。"],
+  ["终南望余雪","祖咏","唐",["终南阴岭秀，积雪浮云端。","林表明霁色，城中增暮寒。"],"终南山北面山岭秀美，积雪仿佛浮在云端。雪后初晴林表泛光，城中更添了傍晚的寒意。","写终南雪景，清丽隽永。"],
+  ["逢雪宿芙蓉山主人","刘长卿","唐",["日暮苍山远，天寒白屋贫。","柴门闻犬吠，风雪夜归人。"],"日暮时分苍山遥远，天寒白屋显得贫寒。柴门外传来狗叫，是风雪之夜有人归来。","写风雪夜投宿，朴素含蓄。"],
+  ["听弹琴","刘长卿","唐",["泠泠七弦上，静听松风寒。","古调虽自爱，今人多不弹。"],"清越的七弦琴上，静听似有松风寒意。古调虽然自己喜爱，如今的人大多不弹了。","借琴音写知音难觅的孤高。"],
+  ["滁州西涧","韦应物","唐",["独怜幽草涧边生，上有黄鹂深树鸣。","春潮带雨晚来急，野渡无人舟自横。"],"独爱涧边生长的幽草，上面有黄鹂在深树中鸣叫。春潮带着雨傍晚来势更急，荒野渡口无人小船独自横着。","写西涧春景，清幽恬淡。"],
+  ["秋思","张籍","唐",["洛阳城里见秋风，欲作家书意万重。","复恐匆匆说不尽，行人临发又开封。"],"洛阳城里刮起秋风，想写家书情意千重。又怕匆匆写不尽，送信人临出发又拆开信封。","写游子思乡，细腻真切。"],
+  ["题都城南庄","崔护","唐",["去年今日此门中，人面桃花相映红。","人面不知何处去，桃花依旧笑春风。"],"去年的今天在这门里，人面和桃花相互映红。如今人面不知去了哪里，桃花依旧在春风中盛开。","写物是人非的怅惘，“人面桃花”由此而来。"],
+  ["乌衣巷","刘禹锡","唐",["朱雀桥边野草花，乌衣巷口夕阳斜。","旧时王谢堂前燕，飞入寻常百姓家。"],"朱雀桥边长满野草花，乌衣巷口夕阳西斜。从前王谢家的燕子，如今飞进了普通百姓家。","写豪门兴衰，感慨沧桑。"],
+  ["浪淘沙","刘禹锡","唐",["九曲黄河万里沙，浪淘风簸自天涯。","如今直上银河去，同到牵牛织女家。"],"九曲黄河裹着万里黄沙，浪淘风簸从天边而来。如今一直奔上银河，一同去到牵牛织女家。","写黄河气势，想象雄奇。"],
+  ["竹枝词","刘禹锡","唐",["杨柳青青江水平，闻郎江上唱歌声。","东边日出西边雨，道是无晴却有晴。"],"杨柳青青江水如镜，听到情郎江上唱歌声。东边日出西边却下雨，说是无情却又有情。","“晴”谐“情”，写初恋的微妙心情。"],
+  ["秋词","刘禹锡","唐",["自古逢秋悲寂寥，我言秋日胜春朝。","晴空一鹤排云上，便引诗情到碧霄。"],"自古人们逢秋就悲叹寂寥，我却说秋天胜过春天。晴空一只白鹤排云而上，就把诗情引到了碧空。","一反悲秋，昂扬奋发。"],
+  ["马诗","李贺","唐",["大漠沙如雪，燕山月似钩。","何当金络脑，快走踏清秋。"],"大漠沙如雪，燕山月似钩。何时能配上金络头，在清秋里快意奔驰。","借马写渴望建功立业的抱负。"],
+  ["雁门太守行","李贺","唐",["黑云压城城欲摧，甲光向日金鳞开。","角声满天秋色里，塞上燕脂凝夜紫。"],"黑云压城城像要摧毁，铠甲映日金光鳞鳞。号角声响彻秋空，塞上暮色如胭脂凝紫。","写边关战争的悲壮，色彩浓烈。"],
+  ["离思","元稹","唐",["曾经沧海难为水，除却巫山不是云。","取次花丛懒回顾，半缘修道半缘君。"],"见过沧海别处的水就不再是水，见过巫山别处的云就不再是云。经过花丛也懒得回顾，一半因为修道一半因为你。","写对爱情的忠贞专一。"],
+  ["菊花","元稹","唐",["秋丛绕舍似陶家，遍绕篱边日渐斜。","不是花中偏爱菊，此花开尽更无花。"],"秋菊环绕房舍像陶渊明的家，绕着篱笆赏菊直到日斜。不是百花中偏爱菊花，只因菊花开尽就再无花了。","写爱菊，赞其傲霜品格。"],
+  ["小儿垂钓","胡令能","唐",["蓬头稚子学垂纶，侧坐莓苔草映身。","路人借问遥招手，怕得鱼惊不应人。"],"蓬头小孩学钓鱼，侧坐在莓苔上草掩着身。路人问路他远远招手，怕惊动鱼儿不应声。","写儿童垂钓的天真专注。"],
+  ["寻隐者不遇","贾岛","唐",["松下问童子，言师采药去。","只在此山中，云深不知处。"],"松树下问童子，他说师父采药去了。只在这座山中，云深不知道在何处。","写寻访不遇，含蓄空灵。"]
+]);
+addPoems([
+  ["赠刘景文","苏轼","宋",["荷尽已无擎雨盖，菊残犹有傲霜枝。","一年好景君须记，最是橙黄橘绿时。"],"荷花凋谢荷叶已无擎雨之姿，菊花残了仍有傲霜的枝干。一年中最好的景致你要记住，正是橙黄橘绿的深秋。","劝人珍惜晚秋，也喻坚贞品格。"],
+  ["惠崇春江晚景","苏轼","宋",["竹外桃花三两枝，春江水暖鸭先知。","蒌蒿满地芦芽短，正是河豚欲上时。"],"竹林外桃花开了两三枝，春江水暖鸭子最先知道。蒌蒿长满地芦芽还短，正是河豚逆流而上的时候。","写早春江景，生机盎然。"],
+  ["饮湖上初晴后雨","苏轼","宋",["水光潋滟晴方好，山色空蒙雨亦奇。","欲把西湖比西子，淡妆浓抹总相宜。"],"晴天西湖水光潋滟正好，雨天山色空蒙也奇妙。想把西湖比作西子，淡妆浓抹总是相宜。","以美人喻西湖，千古绝妙。"],
+  ["六月二十七日望湖楼醉书","苏轼","宋",["黑云翻墨未遮山，白雨跳珠乱入船。","卷地风来忽吹散，望湖楼下水如天。"],"黑云如墨还未遮住山，白雨像跳珠乱跳进船。卷地大风忽然吹散乌云，望湖楼下水面如天空般平静。","写夏日骤雨的瞬息变化。"],
+  ["春日","朱熹","宋",["胜日寻芳泗水滨，无边光景一时新。","等闲识得东风面，万紫千红总是春。"],"风和日丽到泗水边寻春，无边光景焕然一新。随处都能感受到春风，万紫千红都是春天。","写春天的烂漫生机。"],
+  ["游园不值","叶绍翁","宋",["应怜屐齿印苍苔，小扣柴扉久不开。","春色满园关不住，一枝红杏出墙来。"],"大概是怕我的木屐踩坏青苔，轻敲柴门久久不开。可满园春色是关不住的，一枝红杏已探出墙来。","“春色满园关不住”写生机不可阻挡。"],
+  ["泊船瓜洲","王安石","宋",["京口瓜洲一水间，钟山只隔数重山。","春风又绿江南岸，明月何时照我还。"],"京口与瓜洲只隔一水，钟山也只隔几重山。春风又吹绿了江南岸，明月何时照我回家乡。","“绿”字精妙，写思乡之情。"],
+  ["元日","王安石","宋",["爆竹声中一岁除，春风送暖入屠苏。","千门万户曈曈日，总把新桃换旧符。"],"爆竹声中旧年过去，春风送暖人们饮屠苏酒。千家万户沐浴着朝阳，都把新桃符换下旧桃符。","写新年景象，充满希望。"],
+  ["梅花","王安石","宋",["墙角数枝梅，凌寒独自开。","遥知不是雪，为有暗香来。"],"墙角有几枝梅花，冒着严寒独自开放。远远就知那不是雪，因为飘来了阵阵暗香。","赞梅花傲雪的高洁品格。"],
+  ["登飞来峰","王安石","宋",["飞来山上千寻塔，闻说鸡鸣见日升。","不畏浮云遮望眼，自缘身在最高层。"],"飞来山上有千寻高塔，听说鸡鸣时可望见日出。不怕浮云遮住视线，只因为身在最高层。","站得高看得远，含进取精神。"],
+  ["示儿","陆游","宋",["死去元知万事空，但悲不见九州同。","王师北定中原日，家祭无忘告乃翁。"],"原本知道死去万事皆空，只悲伤看不到国家统一。王师北伐收复中原那天，家祭时别忘了告诉你的父亲。","临终绝笔，尽显爱国深情。"],
+  ["冬夜读书示子聿","陆游","宋",["古人学问无遗力，少壮工夫老始成。","纸上得来终觉浅，绝知此事要躬行。"],"古人做学问不遗余力，少年下功夫到老才有成。书本上得来的终究肤浅，要深知此事必须亲身实践。","强调实践出真知。"],
+  ["十一月四日风雨大作","陆游","宋",["僵卧孤村不自哀，尚思为国戍轮台。","夜阑卧听风吹雨，铁马冰河入梦来。"],"僵卧孤村并不自哀，仍想着为国戍守边关。夜深卧听风雨声，铁马冰河闯进了梦乡。","年老仍怀报国之志，悲壮感人。"],
+  ["秋夜将晓出篱门迎凉有感","陆游","宋",["三万里河东入海，五千仞岳上摩天。","遗民泪尽胡尘里，南望王师又一年。"],"三万里黄河东流入海，五千仞华山高耸入云。沦陷区百姓眼泪流尽，南望朝廷军队又过一年。","忧国忧民，沉痛悲愤。"],
+  ["宿新市徐公店","杨万里","宋",["篱落疏疏一径深，树头花落未成阴。","儿童急走追黄蝶，飞入菜花无处寻。"],"篱笆稀稀一条小径深远，树头花落还未成阴。儿童奔跑着追黄蝶，蝴蝶飞进菜花里再也找不到。","写儿童扑蝶的天真童趣。"],
+  ["稚子弄冰","杨万里","宋",["稚子金盆脱晓冰，彩丝穿取当银钲。","敲成玉磬穿林响，忽作玻璃碎地声。"],"小孩把夜里冻的冰从铜盆里取出，用彩线穿起当银锣。敲起来像玉磬穿过树林，忽然又像玻璃碎裂落地。","写儿童玩冰的欢快场景。"],
+  ["四时田园杂兴·梅子金黄","范成大","宋",["梅子金黄杏子肥，麦花雪白菜花稀。","日长篱落无人过，惟有蜻蜓蛱蝶飞。"],"梅子金黄杏子肥硕，麦花雪白菜花稀疏。夏日天长篱笆边无人经过，只有蜻蜓蝴蝶飞舞。","写初夏田园的宁静。"],
+  ["四时田园杂兴·昼出耘田","范成大","宋",["昼出耘田夜绩麻，村庄儿女各当家。","童孙未解供耕织，也傍桑阴学种瓜。"],"白天耘田夜里搓麻，村里男女各管家务。孙儿还不懂耕织，也傍着桑阴学种瓜。","写农家劳作，童趣盎然。"],
+  ["三衢道中","曾几","宋",["梅子黄时日日晴，小溪泛尽却山行。","绿阴不减来时路，添得黄鹂四五声。"],"梅子黄时连日放晴，小溪泛舟到尽头又改走山路。绿阴不亚于来时，还添了黄鹂四五声啼叫。","写初夏山行，清新明快。"],
+  ["题临安邸","林升","宋",["山外青山楼外楼，西湖歌舞几时休？","暖风熏得游人醉，直把杭州作汴州。"],"山外还有青山，楼外还有楼，西湖的歌舞何时才停休？暖风熏得游人沉醉，简直把杭州当成了汴州。","讽刺南宋偏安苟且。"],
+  ["绝句·古木阴中系短篷","志南","宋",["古木阴中系短篷，杖藜扶我过桥东。","沾衣欲湿杏花雨，吹面不寒杨柳风。"],"古树阴下拴着小船，拄着藜杖走过桥东。杏花春雨沾衣欲湿，杨柳微风拂面不寒。","写春日游春的惬意。"],
+  ["春日偶成","程颢","宋",["云淡风轻近午天，傍花随柳过前川。","时人不识余心乐，将谓偷闲学少年。"],"云淡风轻将近正午，傍着花随柳走过前川。旁人不懂我心中的快乐，还以为我偷闲学少年。","写春日闲游的自得。"],
+  ["江上渔者","范仲淹","宋",["江上往来人，但爱鲈鱼美。","君看一叶舟，出没风波里。"],"江上来来往往的人，只喜爱鲈鱼鲜美。你看那一叶小舟，在风浪中出没。","写渔民的艰辛，悯民情怀。"],
+  ["蚕妇","张俞","宋",["昨日入城市，归来泪满巾。","遍身罗绮者，不是养蚕人。"],"昨天进城去，回来泪水湿满巾。那些满身绫罗绸缎的人，都不是养蚕的人。","对比中写劳动者的辛酸。"],
+  ["陶者","梅尧臣","宋",["陶尽门前土，屋上无片瓦。","十指不沾泥，鳞鳞居大厦。"],"挖尽了门前土制瓦，自己屋上却没有片瓦。十指不沾泥的人，却住着鳞鳞大厦。","揭露劳者不获、获者不劳的不平。"],
+  ["咏华山","寇准","宋",["只有天在上，更无山与齐。","举头红日近，回首白云低。"],"只有天在它上面，没有山与它齐平。抬头红日近在眼前，回头白云低在脚下。","写华山之高，气魄不凡。"],
+  ["画","佚名","唐",["远看山有色，近听水无声。","春去花还在，人来鸟不惊。"],"远看山有颜色，近听水却无声。春天过去花还在，人走近鸟也不惊。","写画中之景，暗含谜趣。"],
+  ["江城子·乙卯正月二十日夜记梦","苏轼","宋",["十年生死两茫茫，不思量，自难忘。","千里孤坟，无处话凄凉。","纵使相逢应不识，尘满面，鬓如霜。"],"十年生死两相隔，不去想也难忘。千里外的孤坟，无处诉说凄凉。纵使相逢怕也认不出，我尘土满面、两鬓如霜。","悼念亡妻，真挚深沉。"],
+  ["定风波","苏轼","宋",["莫听穿林打叶声，何妨吟啸且徐行。","竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。"],"不必听那穿林打叶的风雨声，不妨吟啸着慢慢前行。竹杖草鞋轻便胜过马，怕什么？一身蓑衣任凭风雨过一生。","豁达超然，“一蓑烟雨任平生”传诵千古。"],
+  ["浣溪沙·游蕲水清泉寺","苏轼","宋",["山下兰芽短浸溪，松间沙路净无泥。","萧萧暮雨子规啼。","谁道人生无再少？门前流水尚能西。","休将白发唱黄鸡。"],"山下兰芽短浸溪水，松间沙路干净无泥。暮雨中杜鹃啼叫。谁说人生不能再年少？门前流水尚能向西。别因白发就唱那黄鸡催晓的悲歌。","积极乐观，勉人奋发。"],
+  ["青玉案·元夕","辛弃疾","宋",["东风夜放花千树，更吹落、星如雨。","宝马雕车香满路。","凤箫声动，玉壶光转，一夜鱼龙舞。","众里寻他千百度，蓦然回首，那人却在，灯火阑珊处。"],"东风夜放千树繁花，又吹落满天星雨。宝马雕车香气满路。凤箫声起，月光流转，一夜鱼龙飞舞。人群中寻她千百次，猛然回头，那人却在灯火稀疏处。","写元宵盛景，末句意境深远。"],
+  ["西江月·夜行黄沙道中","辛弃疾","宋",["明月别枝惊鹊，清风半夜鸣蝉。","稻花香里说丰年，听取蛙声一片。","七八个星天外，两三点雨山前。","旧时茅店社林边，路转溪桥忽见。"],"明月惊起枝头喜鹊，清风半夜送来蝉鸣。稻花香里谈论丰年，听取蛙声一片。天外七八个星，山前两三点雨。旧时茅店在社林边，转过溪桥忽然出现。","写夏夜乡村，清新恬淡。"],
+  ["清平乐·村居","辛弃疾","宋",["茅檐低小，溪上青青草。","醉里吴音相媚好，白发谁家翁媪？","大儿锄豆溪东，中儿正织鸡笼。","最喜小儿亡赖，溪头卧剥莲蓬。"],"茅屋低小，溪边长满青草。醉里吴音软语相媚好，那是谁家的白发翁媪？大儿在溪东锄豆，二儿正编鸡笼。最喜小儿顽皮，趴在溪头剥莲蓬。","写乡村人家的安宁温馨。"],
+  ["破阵子·为陈同甫赋壮词以寄之","辛弃疾","宋",["醉里挑灯看剑，梦回吹角连营。","八百里分麾下炙，五十弦翻塞外声。","沙场秋点兵。"],"醉里挑灯看剑，梦中回到号角连营。分赏烤肉犒劳部下，弹奏塞外雄壮军乐。秋日沙场正点兵。","写梦中回忆军旅，慷慨激昂。"],
+  ["丑奴儿·书博山道中壁","辛弃疾","宋",["少年不识愁滋味，爱上层楼。","爱上层楼，为赋新词强说愁。","而今识尽愁滋味，欲说还休。","欲说还休，却道天凉好个秋。"],"少年不懂愁的滋味，爱登高楼。登高楼只为作新词强说愁。如今尝尽愁滋味，想说又罢休。想说又罢休，只道一声天凉好个秋。","写愁绪，含蓄深沉。"],
+  ["南乡子·登京口北固亭有怀","辛弃疾","宋",["何处望神州？满眼风光北固楼。","千古兴亡多少事？悠悠。不尽长江滚滚流。"],"哪里能望见中原？满眼风光是北固楼。千古兴亡多少事？悠悠不尽，像长江滚滚奔流。","登高怀古，感慨兴亡。"],
+  ["如梦令·常记溪亭日暮","李清照","宋",["常记溪亭日暮，沉醉不知归路。","兴尽晚回舟，误入藕花深处。","争渡，争渡，惊起一滩鸥鹭。"],"常记溪亭的日暮，沉醉忘了归路。兴尽晚回小船，误入藕花深处。奋力划呀划，惊起一滩鸥鹭。","写少女时代的欢快，清新活泼。"],
+  ["如梦令·昨夜雨疏风骤","李清照","宋",["昨夜雨疏风骤，浓睡不消残酒。","试问卷帘人，却道海棠依旧。","知否，知否？应是绿肥红瘦。"],"昨夜雨疏风急，沉睡也消不尽残酒。试问卷帘的侍女，却说海棠依旧。你知道吗？应是绿叶肥、红花瘦了。","惜春之情，含蓄婉约。"],
+  ["醉花阴","李清照","宋",["薄雾浓云愁永昼，瑞脑销金兽。","佳节又重阳，玉枕纱厨，半夜凉初透。","东篱把酒黄昏后，有暗香盈袖。","莫道不销魂，帘卷西风，人比黄花瘦。"],"薄雾浓云愁度长日，香炉里瑞脑燃尽。又到重阳佳节，玉枕纱帐，半夜凉意初透。黄昏后东篱把酒，暗香沾满衣袖。别说这不销魂，西风卷帘，人比菊花还瘦。","写相思之苦，“人比黄花瘦”为绝唱。"],
+  ["一剪梅","李清照","宋",["红藕香残玉簟秋，轻解罗裳，独上兰舟。","云中谁寄锦书来？雁字回时，月满西楼。"],"红藕香残竹席生凉，轻轻解下罗裳，独自登上小船。云中谁寄来书信？大雁成队飞回时，月光洒满西楼。","写离别相思，情致婉转。"],
+  ["鹊桥仙","秦观","宋",["纤云弄巧，飞星传恨，银汉迢迢暗度。","金风玉露一相逢，便胜却人间无数。","柔情似水，佳期如梦，忍顾鹊桥归路。","两情若是久长时，又岂在朝朝暮暮。"],"纤云变幻巧妙，流星传递离恨，银河迢迢暗中渡。金风玉露一相逢，便胜过人间无数。柔情似水，佳期如梦，怎忍看鹊桥归路。两情若是长久，又何必朝夕相处。","写牛郎织女，“两情若是久长时”为爱情名句。"],
+  ["卜算子·我住长江头","李之仪","宋",["我住长江头，君住长江尾。","日日思君不见君，共饮长江水。"],"我住在长江源头，你住在长江尾。天天想你却见不到你，共饮着长江的水。","写相思，朴素真挚。"],
+  ["渔家傲·秋思","范仲淹","宋",["塞下秋来风景异，衡阳雁去无留意。","四面边声连角起，千嶂里，长烟落日孤城闭。","浊酒一杯家万里，燕然未勒归无计。","羌管悠悠霜满地，人不寐，将军白发征夫泪。"],"塞下秋来风景不同，大雁南去毫无留意。四面边声随着号角响起，千山万壑里，长烟落日孤城紧闭。一杯浊酒遥寄万里家乡，功业未成归期无计。羌笛悠悠霜铺满地，人难入睡，将军白发、征夫落泪。","写边塞秋思，苍凉悲壮。"],
+  ["浣溪沙·一曲新词酒一杯","晏殊","宋",["一曲新词酒一杯，去年天气旧亭台。","夕阳西下几时回？","无可奈何花落去，似曾相识燕归来。","小园香径独徘徊。"],"唱一曲新词饮一杯酒，天气还是去年，亭台依旧。夕阳西下何时再回？无可奈何花已落去，似曾相识的燕子归来。独自在小园花径上徘徊。","写伤春怀旧，“无可奈何花落去”传诵千古。"],
+  ["生查子·元夕","欧阳修","宋",["去年元夜时，花市灯如昼。","月上柳梢头，人约黄昏后。","今年元夜时，月与灯依旧。","不见去年人，泪湿春衫袖。"],"去年元宵夜，花市灯火亮如白昼。月亮爬上柳梢，人约在黄昏之后。今年元宵夜，月亮与灯依旧。却见不到去年的人，泪水湿了春衫袖。","写物是人非的伤感。"],
+  ["雨霖铃","柳永","宋",["寒蝉凄切，对长亭晚，骤雨初歇。","都门帐饮无绪，留恋处，兰舟催发。","执手相看泪眼，竟无语凝噎。","念去去，千里烟波，暮霭沉沉楚天阔。"],"寒蝉叫得凄切，面对长亭暮色，骤雨刚刚停歇。都门帐中饮酒无绪，正留恋时，兰舟催着出发。拉着手泪眼相望，竟哽咽无语。想这一去，千里烟波，暮霭沉沉楚天辽阔。","写离别的缠绵悱恻，为婉约词名篇。"],
+  ["蝶恋花·伫倚危楼风细细","柳永","宋",["伫倚危楼风细细，望极春愁，黯黯生天际。","草色烟光残照里，无言谁会凭阑意。"],"久久倚着高楼，微风细细，极目远望春愁，黯然从天边升起。草色烟光残照里，谁能懂我无言凭栏的心意。","写春愁与孤独。"],
+  ["满江红","岳飞","宋",["怒发冲冠，凭栏处、潇潇雨歇。","抬望眼，仰天长啸，壮怀激烈。","三十功名尘与土，八千里路云和月。","莫等闲，白了少年头，空悲切。"],"怒发冲冠，凭栏时潇潇雨歇。抬眼望，仰天长啸，壮怀激烈。三十年功名如尘土，八千里征战披星戴月。莫虚度光阴，白了少年头，空自悲切。","爱国名篇，“莫等闲”激励后人。"],
+  ["过零丁洋","文天祥","宋",["辛苦遭逢起一经，干戈寥落四周星。","山河破碎风飘絮，身世浮沉雨打萍。","惶恐滩头说惶恐，零丁洋里叹零丁。","人生自古谁无死，留取丹心照汗青。"],"辛苦遭逢靠一部经书入仕，战火中度过四年。山河破碎如风吹柳絮，身世浮沉似雨打浮萍。惶恐滩头说惶恐，零丁洋里叹零丁。人生自古谁无死，留取丹心照耀史册。","大义凛然，“人生自古谁无死”气贯长虹。"],
+  ["卜算子·咏梅","陆游","宋",["驿外断桥边，寂寞开无主。","已是黄昏独自愁，更著风和雨。","无意苦争春，一任群芳妒。","零落成泥碾作尘，只有香如故。"],"驿站外断桥边，寂寞开放无人过问。已是黄昏独自忧愁，又遭风雨吹打。无意争春斗艳，任凭群芳嫉妒。即使零落成泥被碾作尘，香气依然如故。","借梅写坚贞高洁的品格。"],
+  ["钗头凤","陆游","宋",["红酥手，黄縢酒，满城春色宫墙柳。","东风恶，欢情薄。一怀愁绪，几年离索。错、错、错。"],"红润的手，黄封的酒，满城春色宫墙柳。东风可恶，欢情淡薄。一怀愁绪，几年离散。错、错、错。","写爱情悲剧，沉痛哀婉。"]
+]);
+addPoems([
+  ["虞美人","李煜","五代",["春花秋月何时了？往事知多少。","小楼昨夜又东风，故国不堪回首月明中。","雕栏玉砌应犹在，只是朱颜改。","问君能有几多愁？恰似一江春水向东流。"],"春花秋月何时才了？往事知道有多少。小楼昨夜又刮起东风，故国不堪回首于明月之中。雕栏玉砌应该还在，只是人已容颜衰老。问你能有多少愁？恰似一江春水向东奔流。","亡国之痛，“恰似一江春水向东流”写尽愁绪。"],
+  ["相见欢","李煜","五代",["无言独上西楼，月如钩。","寂寞梧桐深院锁清秋。","剪不断，理还乱，是离愁。","别是一般滋味在心头。"],"默默无言独自登上西楼，月亮弯如钩。寂寞梧桐，深深庭院锁住清秋。剪不断，理还乱，那是离愁。另是一番滋味在心头。","写离愁别绪，含蓄深沉。"],
+  ["浪淘沙令","李煜","五代",["帘外雨潺潺，春意阑珊。","罗衾不耐五更寒。","梦里不知身是客，一晌贪欢。"],"帘外雨声潺潺，春意已阑珊。罗被抵不住五更的寒冷。梦里忘了自己是客居之身，贪得片刻欢愉。","写亡国后的囚徒生活，哀婉动人。"],
+  ["观沧海","曹操","东汉",["东临碣石，以观沧海。","水何澹澹，山岛竦峙。","树木丛生，百草丰茂。","秋风萧瑟，洪波涌起。","日月之行，若出其中。","星汉灿烂，若出其里。"],"东行登上碣石山，眺望苍茫大海。海水浩荡，山岛耸立。树木丛生，百草丰茂。秋风萧瑟，洪波涌起。日月运行，仿佛出自海中；银河灿烂，仿佛出自海里。","写大海的壮阔，胸怀博大。"],
+  ["龟虽寿","曹操","东汉",["神龟虽寿，犹有竟时。","腾蛇乘雾，终为土灰。","老骥伏枥，志在千里。","烈士暮年，壮心不已。"],"神龟虽然长寿，也终有终结之时。腾蛇能乘雾，终究化为土灰。老马伏在槽边，志向仍在千里之外。有志之士到了晚年，雄心也不停歇。","“老骥伏枥，志在千里”激励后人。"],
+  ["短歌行（节选）","曹操","东汉",["对酒当歌，人生几何！","譬如朝露，去日苦多。","慨当以慷，忧思难忘。","何以解忧？唯有杜康。"],"面对美酒当高歌，人生能有多少时光！就像清晨的露水，逝去的日子太多。慷慨激昂，忧思难忘。用什么解除忧愁？只有美酒。","感叹人生短暂，求贤若渴。"],
+  ["七步诗","曹植","三国",["煮豆燃豆萁，豆在釜中泣。","本是同根生，相煎何太急？"],"煮豆子烧的是豆秸，豆子在锅里哭泣。本是同根生长，为何煎熬得这么急？","以豆喻兄弟，劝诫手足相残。"],
+  ["归园田居（其三）","陶渊明","晋",["种豆南山下，草盛豆苗稀。","晨兴理荒秽，带月荷锄归。","道狭草木长，夕露沾我衣。","衣沾不足惜，但使愿无违。"],"在南山下种豆，草长得茂盛豆苗却稀。清晨起来除草，披着月光扛锄归来。道路狭窄草木丛生，夕露沾湿衣裳。衣裳湿了不可惜，只要不违背归隐的心愿。","写归隐田园的辛劳与自得。"],
+  ["敕勒歌","北朝民歌","北朝",["敕勒川，阴山下。","天似穹庐，笼盖四野。","天苍苍，野茫茫，风吹草低见牛羊。"],"敕勒川在阴山脚下。天空像毡帐，笼罩着四方原野。天苍苍，野茫茫，风吹草低露出牛羊。","写草原的辽阔壮美。"],
+  ["赠范晔","陆凯","南北朝",["折花逢驿使，寄与陇头人。","江南无所有，聊赠一枝春。"],"折花时遇到送信的驿使，把花寄给陇头的你。江南没有什么好东西，姑且赠你一枝春色。","借梅花寄友情，清雅含蓄。"],
+  ["黄鹤楼","崔颢","唐",["昔人已乘黄鹤去，此地空余黄鹤楼。","黄鹤一去不复返，白云千载空悠悠。","晴川历历汉阳树，芳草萋萋鹦鹉洲。","日暮乡关何处是？烟波江上使人愁。"],"仙人已乘黄鹤离去，这里只空余黄鹤楼。黄鹤一去不再回来，白云千载空自飘悠。晴日里汉阳树历历可见，鹦鹉洲上芳草萋萋。日暮时家乡在何处？江上烟波使人忧愁。","写登楼怀乡，被誉“七律第一”。"],
+  ["白雪歌送武判官归京（节选）","岑参","唐",["北风卷地白草折，胡天八月即飞雪。","忽如一夜春风来，千树万树梨花开。"],"北风卷地吹折了白草，边塞八月就飘起大雪。忽然像一夜春风吹来，千万树梨花盛开。","以春花喻雪，“千树万树梨花开”奇丽动人。"],
+  ["逢入京使","岑参","唐",["故园东望路漫漫，双袖龙钟泪不干。","马上相逢无纸笔，凭君传语报平安。"],"向东望故乡路途漫漫，双袖湿透泪流不干。马上相逢没有纸笔，请你捎句话报个平安。","写边塞思乡，真挚动人。"],
+  ["别董大","高适","唐",["千里黄云白日曛，北风吹雁雪纷纷。","莫愁前路无知己，天下谁人不识君。"],"千里黄云遮日天色昏，北风吹雁大雪纷纷。别愁前路没有知己，天下谁不认识你。","豪迈送别，“天下谁人不识君”慷慨。"],
+  ["春雪","韩愈","唐",["新年都未有芳华，二月初惊见草芽。","白雪却嫌春色晚，故穿庭树作飞花。"],"新年都还没有花开，二月初才惊喜见到草芽。白雪却嫌春色来得晚，故意穿过庭树扮作飞花。","写春雪，构思巧妙。"],
+  ["左迁至蓝关示侄孙湘","韩愈","唐",["一封朝奏九重天，夕贬潮州路八千。","欲为圣明除弊事，肯将衰朽惜残年。","云横秦岭家何在？雪拥蓝关马不前。","知汝远来应有意，好收吾骨瘴江边。"],"一封奏章早上呈给朝廷，傍晚就被贬到八千里外的潮州。想为圣明除去弊政，怎肯顾惜衰朽残年。云横秦岭家乡何在？雪拥蓝关马不前行。知道你远来必有深意，好收我尸骨于瘴江边。","写贬谪途中的悲愤与坚贞。"],
+  ["望洞庭","刘禹锡","唐",["湖光秋月两相和，潭面无风镜未磨。","遥望洞庭山水翠，白银盘里一青螺。"],"湖光秋月交相辉映，湖面无风如未磨的铜镜。遥望洞庭山水翠绿，像白银盘里的一只青螺。","以盘螺喻湖山，想象精妙。"],
+  ["天净沙·秋思","马致远","元",["枯藤老树昏鸦，小桥流水人家。","古道西风瘦马。","夕阳西下，断肠人在天涯。"],"枯藤缠绕老树，黄昏乌鸦归巢，小桥流水旁有人家。古道上西风里瘦马前行。夕阳西下，断肠人漂泊在天涯。","写羁旅秋思，被誉为“秋思之祖”。"],
+  ["墨梅","王冕","元",["我家洗砚池边树，朵朵花开淡墨痕。","不要人夸好颜色，只留清气满乾坤。"],"我家洗砚池边的梅树，朵朵花开带着淡墨痕迹。不需要别人夸赞颜色好，只愿清香之气充满天地。","借梅写高洁不慕虚名。"],
+  ["石灰吟","于谦","明",["千锤万凿出深山，烈火焚烧若等闲。","粉骨碎身浑不怕，要留清白在人间。"],"千锤万凿从深山出来，烈火焚烧视若等闲。粉身碎骨全不怕，要留一身清白在人间。","借石灰言志，气节凛然。"],
+  ["临江仙·滚滚长江东逝水","杨慎","明",["滚滚长江东逝水，浪花淘尽英雄。","是非成败转头空。青山依旧在，几度夕阳红。"],"滚滚长江向东流逝，浪花淘尽了英雄。是非成败转头成空。青山依旧在，几度夕阳红。","感叹历史兴亡，苍凉旷达。"],
+  ["竹石","郑燮","清",["咬定青山不放松，立根原在破岩中。","千磨万击还坚劲，任尔东西南北风。"],"竹子咬定青山不放松，根扎在破裂的岩石中。千磨万击仍坚韧，任凭东西南北风。","借竹写坚毅不屈的品格。"],
+  ["已亥杂诗（其五）","龚自珍","清",["浩荡离愁白日斜，吟鞭东指即天涯。","落红不是无情物，化作春泥更护花。"],"浩荡离愁中白日西斜，马鞭东指便是天涯。落花不是无情之物，化作春泥更护养新花。","“落红不是无情物”表达奉献精神。"],
+  ["村居","高鼎","清",["草长莺飞二月天，拂堤杨柳醉春烟。","儿童散学归来早，忙趁东风放纸鸢。"],"二月草长莺飞，堤上杨柳在春烟中沉醉。儿童放学回来得早，忙趁着东风放风筝。","写春日村居的生机与童趣。"],
+  ["所见","袁枚","清",["牧童骑黄牛，歌声振林樾。","意欲捕鸣蝉，忽然闭口立。"],"牧童骑在黄牛上，歌声在树林中回荡。想捕捉鸣叫的蝉，忽然闭嘴站立不动。","写牧童的天真神态。"],
+  ["长相思","纳兰性德","清",["山一程，水一程，身向榆关那畔行。","夜深千帐灯。","风一更，雪一更，聒碎乡心梦不成。","故园无此声。"],"走过一程程山，一程程水，向榆关那边行进。夜深了千万帐篷亮着灯。刮一更风，下一更雪，吵碎了思乡的心，梦也做不成。故乡没有这样的声音。","写行军途中的思乡之情。"],
+  ["舟夜书所见","查慎行","清",["月黑见渔灯，孤光一点萤。","微微风簇浪，散作满河星。"],"月黑之夜只见渔灯，孤光像一点萤火。微风簇起波浪，灯光散作满河繁星。","写江上夜景，精巧如画。"],
+]);
+addPoems([
+  ["登幽州台歌","陈子昂","唐",["前不见古人，后不见来者。","念天地之悠悠，独怆然而涕下。"],"往前看不到古代的贤君，往后看不到未来的明主。想到天地悠悠无穷无尽，不禁独自悲伤地流下眼泪。","写登台怀古的孤独与悲怆，格调苍凉，开一代风骨。"],
+  ["风","李峤","唐",["解落三秋叶，能开二月花。","过江千尺浪，入竹万竿斜。"],"风能吹落深秋的树叶，能吹开二月的春花。吹过江面掀起千尺浪，吹入竹林万竿倾斜。","借四种景象写风，构思巧妙，是咏物名篇。"],
+  ["蝉","虞世南","唐",["垂緌饮清露，流响出疏桐。","居高声自远，非是藉秋风。"],"蝉垂下触须吸饮清露，鸣声从稀疏的梧桐中传出。因为身居高处声音自然传得远，并不是靠秋风传送。","借蝉写高洁的品格，言近旨远。"],
+  ["悯农（其二）","李绅","唐",["春种一粒粟，秋收万颗子。","四海无闲田，农夫犹饿死。"],"春天种下一粒种子，秋天收获万颗粮食。天下没有一块荒芜的田，可农夫还是被饿死。","以强烈对比揭露社会的不公，令人警醒。"],
+  ["蜂","罗隐","唐",["不论平地与山尖，无限风光尽被占。","采得百花成蜜后，为谁辛苦为谁甜。"],"无论是在平地还是山尖，无限风光都被蜜蜂占尽。采尽百花酿成蜂蜜之后，究竟是为谁辛苦、为谁甜蜜？","借蜂喻劳动者，感叹劳而不获。"],
+  ["渡汉江","宋之问","唐",["岭外音书断，经冬复历春。","近乡情更怯，不敢问来人。"],"流放岭南后与家人音信断绝，度过冬天又熬过春天。如今离家乡越近越胆怯，不敢向迎面而来的人打听消息。","“近乡情更怯”写尽游子久别还乡的复杂心情。"],
+  ["秋夜寄邱员外","韦应物","唐",["怀君属秋夜，散步咏凉天。","空山松子落，幽人应未眠。"],"在这秋夜里怀念你，漫步吟咏清凉的天气。空山中松子落地，你这位隐士大概也还未入睡。","写秋夜怀友，清幽淡远。"],
+  ["寒食","韩翃","唐",["春城无处不飞花，寒食东风御柳斜。","日暮汉宫传蜡烛，轻烟散入五侯家。"],"春日的京城无处不飘着飞花，寒食节东风吹得御苑柳枝斜。傍晚皇宫里传出蜡烛，轻烟飘散到五侯之家。","写寒食节景象，暗含对权贵的讽刺。"],
+  ["十五夜望月","王建","唐",["中庭地白树栖鸦，冷露无声湿桂花。","今夜月明人尽望，不知秋思落谁家。"],"庭院地面白得像霜，树上栖着乌鸦，冷露无声沾湿桂花。今夜明月人人都在仰望，不知这秋思会落在谁家。","写中秋望月怀人，含蓄悠远。"],
+  ["题李凝幽居","贾岛","唐",["闲居少邻并，草径入荒园。","鸟宿池边树，僧敲月下门。"],"闲居之处少有邻居，长满青草的小路通向荒园。鸟儿栖息在池边树上，僧人敲着月下的柴门。","“推敲”典故即出于此，写幽居的清寂。"],
+  ["观猎","王维","唐",["风劲角弓鸣，将军猎渭城。","草枯鹰眼疾，雪尽马蹄轻。"],"风劲弓弦鸣响，将军在渭城打猎。草枯了鹰眼更锐利，雪化了马蹄更轻快。","写将军出猎的英武，气势飞动。"],
+  ["山中","王维","唐",["荆溪白石出，天寒红叶稀。","山路元无雨，空翠湿人衣。"],"荆溪水浅露出白石，天气寒冷红叶稀疏。山路上本没有下雨，那空蒙的翠色却像沾湿了衣裳。","写初冬山中清幽，色彩淡雅。"],
+  ["送别","王维","唐",["山中相送罢，日暮掩柴扉。","春草明年绿，王孙归不归？"],"在山中送别了你，日落时关上柴门。明年春草再绿时，你还会不会回来？","送别之后仍挂念，含蓄深情。"],
+  ["采莲曲","王昌龄","唐",["荷叶罗裙一色裁，芙蓉向脸两边开。","乱入池中看不见，闻歌始觉有人来。"],"采莲女的罗裙与荷叶一色，荷花正对着她的脸庞开放。混入池塘便分不清了，听到歌声才知道有人来。","写采莲女与荷塘相映成趣，清新优美。"],
+  ["秋浦歌","李白","唐",["白发三千丈，缘愁似个长。","不知明镜里，何处得秋霜。"],"白发有三千丈长，因为忧愁也这么长。不知镜中的我，从哪里染上了这满头秋霜般的白发。","极尽夸张写愁，想象奇绝。"],
+  ["行路难","李白","唐",["金樽清酒斗十千，玉盘珍羞直万钱。","停杯投箸不能食，拔剑四顾心茫然。","欲渡黄河冰塞川，将登太行雪满山。","长风破浪会有时，直挂云帆济沧海。"],"金杯里的美酒一斗值十千，玉盘中的佳肴价值万钱。却停下酒杯、放下筷子吃不下，拔剑四望心中茫然。想渡黄河却冰封河道，想登太行却大雪封山。但终有一天会乘长风破万里浪，挂起云帆横渡沧海。","“长风破浪会有时”抒发不屈的豪情，激励后人。"],
+  ["宣州谢朓楼饯别校书叔云","李白","唐",["弃我去者，昨日之日不可留。","乱我心者，今日之日多烦忧。","长风万里送秋雁，对此可以酣高楼。","抽刀断水水更流，举杯销愁愁更愁。"],"弃我而去的昨日不可挽留，扰乱我心的今日多么烦忧。长风万里送走秋雁，对此正可登楼畅饮。抽刀断水水却流得更急，举杯消愁愁却更深。","豪放与愁绪交织，“抽刀断水水更流”脍炙人口。"],
+  ["登金陵凤凰台","李白","唐",["凤凰台上凤凰游，凤去台空江自流。","吴宫花草埋幽径，晋代衣冠成古丘。","三山半落青天外，二水中分白鹭洲。","总为浮云能蔽日，长安不见使人愁。"],"凤凰台上曾有凤凰游，如今凤去台空只有江水自流。吴宫花草埋没在幽径里，晋代名士已成古丘。三山半隐于青天之外，白鹭洲把江水一分为二。总因浮云遮蔽太阳，望不见长安使人忧愁。","怀古伤今，意境开阔，可与《黄鹤楼》媲美。"],
+  ["关山月","李白","唐",["明月出天山，苍茫云海间。","长风几万里，吹度玉门关。"],"明月从天山升起，出没在苍茫的云海之间。长风几万里，吹过了玉门关。","写边塞月色，境界苍茫辽阔。"],
+  ["春思","李白","唐",["燕草如碧丝，秦桑低绿枝。","当君怀归日，是妾断肠时。","春风不相识，何事入罗帏。"],"燕地春草细如碧丝，秦地桑树绿枝低垂。当你思念归家之日，正是我肝肠寸断之时。春风啊你我不相识，为何吹进我的罗帐。","写思妇春日的思念，委婉细腻。"],
+  ["赠孟浩然","李白","唐",["吾爱孟夫子，风流天下闻。","红颜弃轩冕，白首卧松云。","醉月频中圣，迷花不事君。","高山安可仰，徒此揖清芬。"],"我敬爱孟夫子，他风流倜傥天下闻名。年少时弃官不做，老来高卧松云之间。月下饮酒常常沉醉，流连花间不愿侍奉君王。高山怎可仰望，只能在此揖拜他的清高芬芳。","赞美孟浩然的高洁，情真意切。"],
+  ["绝句·江碧鸟逾白","杜甫","唐",["江碧鸟逾白，山青花欲燃。","今春看又过，何日是归年。"],"江水碧绿更显鸟羽洁白，山色青翠花朵红得像要燃烧。眼看这个春天又要过去，哪一天才是回家的日子。","色彩鲜明写春景，末句转出思乡之情。"],
+  ["前出塞","杜甫","唐",["挽弓当挽强，用箭当用长。","射人先射马，擒贼先擒王。","杀人亦有限，列国自有疆。","苟能制侵陵，岂在多杀伤。"],"拉弓要拉强弓，用箭要用长箭。射人先射他的马，擒贼先擒贼王。杀人也应有节制，各国本有各自的疆界。只要能制止侵略，何必追求多杀伤。","议论风发，主张以战止战、不滥杀，见解深刻。"],
+  ["月夜忆舍弟","杜甫","唐",["戍鼓断人行，边秋一雁声。","露从今夜白，月是故乡明。","有弟皆分散，无家问死生。","寄书长不达，况乃未休兵。"],"戍楼鼓声打断行人，边地秋空孤雁哀鸣。今夜白露更显清寒，月亮还是故乡的明亮。兄弟们各自分散，无处打听生死。寄信常常送不到，何况战乱未平。","“露从今夜白，月是故乡明”写思乡怀人，情真意切。"],
+  ["旅夜书怀","杜甫","唐",["细草微风岸，危樯独夜舟。","星垂平野阔，月涌大江流。","名岂文章著，官应老病休。","飘飘何所似，天地一沙鸥。"],"微风吹拂细草江岸，孤舟竖着高桅停泊夜中。星垂平野更显辽阔，月涌大江奔流不息。名声岂是因文章而显赫，做官到老病就该退休。飘然一身像什么，恰如天地间一只沙鸥。","写漂泊无依，末句以沙鸥自况，苍凉感人。"],
+  ["茅屋为秋风所破歌（节选）","杜甫","唐",["安得广厦千万间，大庇天下寒士俱欢颜。","风雨不动安如山。呜呼！何时眼前突兀见此屋，吾庐独破受冻死亦足！"],"怎样才能有千万间宽敞的房屋，庇护天下贫寒之士都露出笑脸，任凭风雨也安稳如山。唉！什么时候眼前突然出现这样的房屋，就是我的茅屋破漏、受冻而死也心甘情愿！","推己及人，胸怀天下，是杜甫博爱精神的写照。"],
+  ["观刈麦","白居易","唐",["田家少闲月，五月人倍忙。","夜来南风起，小麦覆陇黄。","妇姑荷箪食，童稚携壶浆。","相随饷田去，丁壮在南冈。"],"农家很少有闲月，五月里人更忙。夜里南风吹起，小麦盖满田垄一片金黄。妇女挑着饭食，小孩提着水壶，一起去给田里送饭，壮年劳力正在南冈割麦。","写农民麦收的辛劳，蕴含对劳动者的同情。"],
+  ["暮江吟","白居易","唐",["一道残阳铺水中，半江瑟瑟半江红。","可怜九月初三夜，露似真珠月似弓。"],"一道夕阳余晖铺洒水中，江面一半碧绿一半通红。九月初三的夜晚多么可爱，露珠像珍珠，新月像弯弓。","写暮江晚景，设色奇丽，清新如画。"],
+  ["大林寺桃花","白居易","唐",["人间四月芳菲尽，山寺桃花始盛开。","长恨春归无觅处，不知转入此中来。"],"人间四月百花已经凋谢，山中寺院的桃花才刚盛开。常常遗憾春天归去无处寻找，却不知它转到了这里。","写山寺春迟，构思新巧，暗含“山高地寒”之理。"],
+  ["池上","白居易","唐",["小娃撑小艇，偷采白莲回。","不解藏踪迹，浮萍一道开。"],"小孩撑着小船，偷偷采了白莲回来。不懂得隐藏行踪，船过处浮萍被划开一条水路。","写儿童偷采白莲的天真憨态，童趣盎然。"],
+  ["忆江南","白居易","唐",["江南好，风景旧曾谙。","日出江花红胜火，春来江水绿如蓝。","能不忆江南？"],"江南真美，那里的风景我从前就很熟悉。日出时江花红得像火，春天江水绿得像蓼蓝。叫人怎能不怀念江南？","写江南春色，色彩明丽，直抒对江南的怀念。"],
+  ["钱塘湖春行","白居易","唐",["孤山寺北贾亭西，水面初平云脚低。","几处早莺争暖树，谁家新燕啄春泥。","乱花渐欲迷人眼，浅草才能没马蹄。","最爱湖东行不足，绿杨阴里白沙堤。"],"孤山寺北、贾亭西边，湖面初平云脚低垂。几处早莺争占暖树，谁家新燕在啄春泥。繁花渐开使人眼花，浅草刚能没过马蹄。最爱湖东走不够，绿杨阴里的白沙堤。","写西湖早春，处处生意，是写景名篇。"],
+  ["过华清宫","杜牧","唐",["长安回望绣成堆，山顶千门次第开。","一骑红尘妃子笑，无人知是荔枝来。"],"回望长安骊山如锦绣堆叠，山顶宫门一道道依次打开。一骑快马扬尘飞驰，杨贵妃露出笑容，没人知道是送荔枝来了。","借送荔枝讽刺唐玄宗与杨贵妃的奢侈。"],
+  ["寄扬州韩绰判官","杜牧","唐",["青山隐隐水迢迢，秋尽江南草未凋。","二十四桥明月夜，玉人何处教吹箫。"],"青山隐隐绿水迢迢，秋天将尽江南草木仍未凋零。二十四桥的明月之夜，你在何处教歌女吹箫。","写对扬州友人的思念，风调悠扬。"],
+  ["赠别","杜牧","唐",["多情却似总无情，唯觉樽前笑不成。","蜡烛有心还惜别，替人垂泪到天明。"],"本是多情却像无情，只觉得在酒樽前笑不出来。蜡烛仿佛有心也怜惜离别，替人流泪直到天明。","借蜡烛写别情，婉转深致。"],
+  ["无题·昨夜星辰昨夜风","李商隐","唐",["昨夜星辰昨夜风，画楼西畔桂堂东。","身无彩凤双飞翼，心有灵犀一点通。"],"昨夜星辰满天、微风习习，在画楼西畔、桂堂之东相会。身上虽无彩凤的双翼可以飞到你身旁，心中却有灵犀一点彼此相通。","“心有灵犀一点通”写恋人间的默契，千古传诵。"],
+  ["锦瑟","李商隐","唐",["锦瑟无端五十弦，一弦一柱思华年。","庄生晓梦迷蝴蝶，望帝春心托杜鹃。","沧海月明珠有泪，蓝田日暖玉生烟。","此情可待成追忆，只是当时已惘然。"],"锦瑟为何有五十根弦，每一弦每一柱都令人追忆青春年华。庄周梦蝶迷离，望帝化鹃寄托春心。沧海明月下鲛人泣珠，蓝田暖日中良玉生烟。这份情感哪能等到如今才追忆，其实当时就已令人惘然。","意象华美朦胧，是李商隐最难解也最美的诗之一。"],
+  ["夜上受降城闻笛","李益","唐",["回乐峰前沙似雪，受降城外月如霜。","不知何处吹芦管，一夜征人尽望乡。"],"回乐峰前沙白似雪，受降城外月光如霜。不知哪里吹起了芦笛，戍边的将士一夜都望向故乡。","写边塞思乡，意境苍凉。"],
+  ["近试上张籍水部","朱庆馀","唐",["洞房昨夜停红烛，待晓堂前拜舅姑。","妆罢低声问夫婿，画眉深浅入时无。"],"昨夜洞房花烛通明，天亮就要到堂前拜见公婆。梳妆好了低声问丈夫，我的眉毛画得深浅合不合时宜。","以新妇自喻，含蓄地问考官自己文章是否合意。"],
+  ["金缕衣","杜秋娘","唐",["劝君莫惜金缕衣，劝君惜取少年时。","有花堪折直须折，莫待无花空折枝。"],"劝你不要爱惜华贵的金缕衣，要珍惜少年的大好时光。花开可以折取时就要折取，不要等到花谢了只能折空枝。","劝人珍惜时光，及时努力。"]
+]);
+addPoems([
+  ["江城子·密州出猎","苏轼","宋",["老夫聊发少年狂，左牵黄，右擎苍。","锦帽貂裘，千骑卷平冈。","为报倾城随太守，亲射虎，看孙郎。","会挽雕弓如满月，西北望，射天狼。"],"老夫姑且发一发少年的狂气，左手牵黄犬，右臂架苍鹰。戴着锦帽穿着貂裘，千骑卷过平冈。为了报答全城人跟随太守的盛情，我要亲自射虎，一展孙权的英姿。定会拉满雕弓如圆月，朝西北瞄准天狼星。","写打猎的豪情，抒发杀敌报国的壮志。"],
+  ["卜算子·黄州定慧院寓居作","苏轼","宋",["缺月挂疏桐，漏断人初静。","谁见幽人独往来，缥缈孤鸿影。","惊起却回头，有恨无人省。","拣尽寒枝不肯栖，寂寞沙洲冷。"],"缺月挂在稀疏的梧桐上，夜深人静漏声已断。谁见那幽人独自徘徊，如同缥缈的孤鸿身影。猛然惊起又回头，满怀幽恨无人理解。拣遍寒枝不肯栖息，宁在寂寞寒冷的沙洲上。","借孤鸿写孤高自许、不肯随俗的品格。"],
+  ["蝶恋花·春景","苏轼","宋",["花褪残红青杏小，燕子飞时，绿水人家绕。","枝上柳绵吹又少，天涯何处无芳草。","墙里秋千墙外道，墙外行人，墙里佳人笑。","笑渐不闻声渐悄，多情却被无情恼。"],"花儿褪去残红，青杏还小，燕子飞时绿水环绕人家。枝上柳絮被风吹得越来越少，天涯何处没有芳草。墙里秋千墙外路，墙外行人听到墙里佳人的笑声。笑声渐渐听不见，多情的人反被无情的她惹恼。","写暮春之景，蕴含人生感慨，情理交融。"],
+  ["临江仙·夜饮东坡醒复醉","苏轼","宋",["夜饮东坡醒复醉，归来仿佛三更。","家童鼻息已雷鸣，敲门都不应，倚杖听江声。","长恨此身非我有，何时忘却营营。","夜阑风静縠纹平，小舟从此逝，江海寄余生。"],"夜里在东坡饮酒，醒了又醉，归来时仿佛已三更。家童鼾声如雷，敲门也不应，只好倚着拐杖听江声。常恨这身子不属于我自己，何时能忘却世俗的钻营。夜深风静波纹平，真想乘小舟从此离去，在江海间寄托余生。","写超然物外、向往自由的情怀。"],
+  ["浣溪沙·细雨斜风作晓寒","苏轼","宋",["细雨斜风作晓寒，淡烟疏柳媚晴滩。","入淮清洛渐漫漫。","雪沫乳花浮午盏，蓼茸蒿笋试春盘。","人间有味是清欢。"],"细雨斜风带来清晨的寒意，淡烟疏柳点缀着晴滩。清清的洛水流入淮河渐渐宽阔。午茶的雪沫乳花浮在盏上，蓼芽蒿笋摆上春盘。人间真正有滋味的，是这清淡的欢愉。","“人间有味是清欢”道出平淡生活的真谛。"],
+  ["书湖阴先生壁","王安石","宋",["茅檐长扫净无苔，花木成畦手自栽。","一水护田将绿绕，两山排闼送青来。"],"茅屋檐下常常打扫干净无苔，花木成畦都是亲手栽种。一条溪水护着农田把绿色环绕，两座青山推开门送来青翠。","写隐士庭院清幽，拟人精妙。"],
+  ["书愤","陆游","宋",["早岁那知世事艰，中原北望气如山。","楼船夜雪瓜洲渡，铁马秋风大散关。","塞上长城空自许，镜中衰鬓已先斑。","出师一表真名世，千载谁堪伯仲间。"],"年轻时哪知世事艰难，北望中原豪气如山。曾乘楼船雪夜渡瓜洲，骑铁马秋风中守大散关。空自许为塞上长城，镜中衰鬓早已斑白。诸葛亮的《出师表》真堪称名世之作，千载以来谁能与他相比。","追怀抗金壮志，抒发报国无门的悲愤。"],
+  ["临安春雨初霁","陆游","宋",["世味年来薄似纱，谁令骑马客京华。","小楼一夜听春雨，深巷明朝卖杏花。","矮纸斜行闲作草，晴窗细乳戏分茶。","素衣莫起风尘叹，犹及清明可到家。"],"这些年来世情淡薄如纱，谁让我骑马客居京城。小楼里听了一夜春雨，深巷里明早会有人叫卖杏花。在矮纸上斜写草书消遣，晴窗前细乳分茶自娱。别叹素衣染上风尘，还赶得上清明回家。","“小楼一夜听春雨，深巷明朝卖杏花”写尽江南春意。"],
+  ["诉衷情·当年万里觅封侯","陆游","宋",["当年万里觅封侯，匹马戍梁州。","关河梦断何处？尘暗旧貂裘。","胡未灭，鬓先秋，泪空流。","此生谁料，心在天山，身老沧洲。"],"当年万里奔波寻求建功封侯，单枪匹马戍守梁州。边关的梦断了，如今身在何处？旧貂裘上已落满灰尘。胡人未灭，鬓发先白，泪水空流。谁能料到此生，心仍在天山，人却老死在江湖。","写壮志未酬的悲愤，感人至深。"],
+  ["病起书怀","陆游","宋",["病骨支离纱帽宽，孤臣万里客江干。","位卑未敢忘忧国，事定犹须待阖棺。"],"病体支离，纱帽显得宽大，孤臣万里客居江边。地位卑微却从不敢忘记忧国，事情的是非定论还要等盖棺之后。","“位卑未敢忘忧国”是陆游爱国精神的写照。"],
+  ["梅花绝句","陆游","宋",["闻道梅花坼晓风，雪堆遍满四山中。","何方可化身千亿，一树梅花一放翁。"],"听说梅花在晨风中绽放，如雪堆般开满四面的山中。有什么办法能让我化身千亿，每一树梅花前都有一个放翁去欣赏。","写爱梅之深，想象奇特。"],
+  ["武陵春","李清照","宋",["风住尘香花已尽，日晚倦梳头。","物是人非事事休，欲语泪先流。","闻说双溪春尚好，也拟泛轻舟。","只恐双溪舴艋舟，载不动许多愁。"],"风停了，尘土带着花香，花已落尽，天晚了也懒得梳头。景物依旧人事已非，万事皆休，想说话泪却先流。听说双溪春色尚好，也想泛舟出游。只怕双溪的小船，载不动我这么多愁。","写国破家亡后的深重愁绪，比喻新巧。"],
+  ["夏日绝句","李清照","宋",["生当作人杰，死亦为鬼雄。","至今思项羽，不肯过江东。"],"活着要作人中的豪杰，死了也要作鬼中的英雄。直到今天仍怀念项羽，只因他宁死也不肯渡江回江东。","借项羽讽南宋苟安，气节凛然。"],
+  ["舟过安仁","杨万里","宋",["一叶渔船两小童，收篙停棹坐船中。","怪生无雨都张伞，不是遮头是使风。"],"一叶渔船上坐着两个小孩，收起竹篙停下船桨坐在船中。怪不得没下雨也撑开伞，原来不是遮头而是借风行船。","写儿童奇思妙想，童趣盎然。"],
+  ["过松源晨炊漆公店","杨万里","宋",["莫言下岭便无难，赚得行人错喜欢。","正入万山圈子里，一山放出一山拦。"],"不要说下了山岭就没有困难，那只会骗得行人空欢喜。正走在万山包围中，刚过一山，另一山又拦住去路。","借行路说明人生处处有难关，寓意深刻。"],
+  ["夜书所见","叶绍翁","宋",["萧萧梧叶送寒声，江上秋风动客情。","知有儿童挑促织，夜深篱落一灯明。"],"梧桐叶萧萧作响送来寒意，江上秋风吹动游子的愁情。料想有孩子在捉蟋蟀，夜深了篱笆边还亮着一盏灯。","写秋夜旅愁与童趣，对比动人。"],
+  ["病牛","李纲","宋",["耕犁千亩实千箱，力尽筋疲谁复伤。","但得众生皆得饱，不辞羸病卧残阳。"],"这头牛耕了千亩田，装满了千座粮仓，力尽筋疲又有谁怜惜。只要天下众生都能吃饱，它甘愿瘦弱多病卧在残阳下。","借病牛自喻，表达鞠躬尽瘁、甘于奉献的精神。"],
+  ["观书有感（其二）","朱熹","宋",["昨夜江边春水生，艨艟巨舰一毛轻。","向来枉费推移力，此日中流自在行。"],"昨夜江边春水大涨，那庞大的战船像羽毛一样轻。从前白白耗费了推拉的力气，如今在江水中流自在航行。","借行船说明蓄积实力、厚积薄发的道理。"],
+  ["劝学","朱熹","宋",["少年易老学难成，一寸光阴不可轻。","未觉池塘春草梦，阶前梧叶已秋声。"],"少年容易老去，学问却难成就，一寸光阴都不可轻视。还没从池塘春草的美梦中醒来，阶前梧桐叶已响起秋声。","劝人珍惜光阴，勤奋学习。"],
+  ["卜算子·送鲍浩然之浙东","王观","宋",["水是眼波横，山是眉峰聚。","欲问行人去那边？眉眼盈盈处。","才始送春归，又送君归去。","若到江南赶上春，千万和春住。"],"水像眼波横流，山像眉峰聚拢。想问行人要去哪里？正是那眉眼盈盈的江南。刚刚送走春天，又送你归去。如果到江南赶上春天，千万要和春天同住。","写送别，构思新巧，情致深婉。"],
+  ["菩萨蛮·书江西造口壁","辛弃疾","宋",["郁孤台下清江水，中间多少行人泪。","西北望长安，可怜无数山。","青山遮不住，毕竟东流去。","江晚正愁余，山深闻鹧鸪。"],"郁孤台下清清的江水，中间流着多少行人的眼泪。向西北遥望长安，可惜被无数青山遮住。青山遮不住江水，它毕竟还是向东流去。江边傍晚我正忧愁，深山中又传来鹧鸪的啼叫。","借景抒收复失地的渴望与无奈。"],
+  ["永遇乐·京口北固亭怀古（节选）","辛弃疾","宋",["千古江山，英雄无觅，孙仲谋处。","舞榭歌台，风流总被，雨打风吹去。","斜阳草树，寻常巷陌，人道寄奴曾住。","想当年，金戈铁马，气吞万里如虎。"],"千古江山依旧，却无处寻觅孙权那样的英雄。当年的舞榭歌台，英雄风流总被雨打风吹而去。斜阳下草树丛生的寻常巷陌，人们说刘裕曾在这里居住。想当年他金戈铁马，气吞万里如虎。","追怀英雄，抒发抗金报国的豪情与感慨。"],
+  ["玉楼春·春景","宋祁","宋",["东城渐觉风光好，縠皱波纹迎客棹。","绿杨烟外晓寒轻，红杏枝头春意闹。"],"东城渐渐觉得风光美好，水面波纹如縠纱迎接游船。绿杨笼罩的烟霭外晓寒轻淡，红杏枝头春意喧闹。","“红杏枝头春意闹”着一“闹”字，境界全出。"],
+  ["蝶恋花·庭院深深深几许","欧阳修","宋",["庭院深深深几许，杨柳堆烟，帘幕无重数。","玉勒雕鞍游冶处，楼高不见章台路。","雨横风狂三月暮，门掩黄昏，无计留春住。","泪眼问花花不语，乱红飞过秋千去。"],"庭院深深，深到什么程度？杨柳堆烟，帘幕重重无数。那玉勒雕鞍的游乐之地，楼再高也望不见章台路。暮春三月雨狂风急，掩住黄昏也留不住春天。含泪问花花不回答，乱红飘过秋千而去。","写闺中伤春，婉曲深致，末句尤妙。"],
+  ["蝶恋花·槛菊愁烟兰泣露","晏殊","宋",["槛菊愁烟兰泣露，罗幕轻寒，燕子双飞去。","明月不谙离恨苦，斜光到晓穿朱户。","昨夜西风凋碧树，独上高楼，望尽天涯路。"],"栏杆边菊花笼烟含愁，兰花沾露如泣，罗幕透着轻寒，燕子双双飞去。明月不懂离恨之苦，斜光直到天明还穿进朱户。昨夜西风凋落了碧树，我独自登上高楼，望尽天涯之路。","写离别相思，境界高远，为晏殊词名篇。"],
+  ["浣溪沙·漠漠轻寒上小楼","秦观","宋",["漠漠轻寒上小楼，晓阴无赖似穷秋。","淡烟流水画屏幽。","自在飞花轻似梦，无边丝雨细如愁。","宝帘闲挂小银钩。"],"漠漠轻寒笼罩小楼，清晨阴沉无赖得像深秋。屏风上的淡烟流水显得幽静。自在飘飞的花瓣轻得像梦，无边的细雨细得像愁。宝帘闲闲地挂在小银钩上。","“自在飞花轻似梦，无边丝雨细如愁”比喻精妙。"],
+  ["踏莎行·郴州旅舍","秦观","宋",["雾失楼台，月迷津渡，桃源望断无寻处。","可堪孤馆闭春寒，杜鹃声里斜阳暮。","驿寄梅花，鱼传尺素，砌成此恨无重数。","郴江幸自绕郴山，为谁流下潇湘去。"],"雾遮楼台，月迷渡口，望断桃源也找不到去处。怎忍受孤馆里春寒紧闭，杜鹃声里斜阳迟暮。驿寄梅花，鱼传书信，堆成的愁恨无数。郴江本自绕着郴山，又为谁流下潇湘去。","写贬谪中的孤寂愁苦，凄婉动人。"],
+  ["春日","秦观","宋",["一夕轻雷落万丝，霁光浮瓦碧参差。","有情芍药含春泪，无力蔷薇卧晓枝。"],"一夜轻雷洒下万缕雨丝，雨后天光浮在碧瓦上参差闪亮。多情的芍药含春泪，无力的蔷薇卧在晓枝上。","写雨后春晨，柔美细腻。"],
+  ["临江仙·梦后楼台高锁","晏几道","宋",["梦后楼台高锁，酒醒帘幕低垂。","去年春恨却来时，落花人独立，微雨燕双飞。","记得小苹初见，两重心字罗衣。","琵琶弦上说相思，当时明月在，曾照彩云归。"],"梦醒后楼台高锁，酒醒时帘幕低垂。去年春天的离恨又涌上心头，落花中我独自站立，微雨中燕子双飞。记得初见小苹，她穿着绣着两重心字的罗衣。琵琶弦上倾诉相思，当时明月仍在，曾照着彩云般的人归去。","写怀人，落花微雨两句意境凄美。"],
+  ["村晚","雷震","宋",["草满池塘水满陂，山衔落日浸寒漪。","牧童归去横牛背，短笛无腔信口吹。"],"青草长满池塘，水涨满了池岸，山衔着落日倒映在寒凉的波纹中。牧童归去横坐在牛背上，短笛随意吹着不成调的曲子。","写乡村晚景与牧童的天真，恬淡如画。"],
+  ["雪梅","卢钺","宋",["梅雪争春未肯降，骚人阁笔费评章。","梅须逊雪三分白，雪却输梅一段香。"],"梅花和雪花争春不肯相让，诗人搁下笔费心思量如何评判。梅花应逊雪花三分洁白，雪花却输给梅花一段清香。","写梅雪各有千秋，含哲理。"],
+  ["扬州慢·淮左名都（节选）","姜夔","宋",["淮左名都，竹西佳处，解鞍少驻初程。","过春风十里，尽荠麦青青。","自胡马窥江去后，废池乔木，犹厌言兵。","渐黄昏，清角吹寒，都在空城。"],"淮左的名都，竹西亭的佳处，我解鞍下马稍作停留。走过春风十里，眼前尽是青青的荠麦。自从金兵南侵之后，废池古树仍厌恶谈起战事。渐近黄昏，凄清的号角吹来寒意，回荡在空城之中。","写扬州战后的荒凉，抒发黍离之悲。"],
+  ["寄黄几复","黄庭坚","宋",["我居北海君南海，寄雁传书谢不能。","桃李春风一杯酒，江湖夜雨十年灯。"],"我住在北海你住在南海，想托大雁传信它也谢绝。当年桃李春风中举杯共饮，如今江湖夜雨里对灯十年。","“桃李春风一杯酒，江湖夜雨十年灯”对仗工整，情味深长。"],
+  ["登快阁","黄庭坚","宋",["痴儿了却公家事，快阁东西倚晚晴。","落木千山天远大，澄江一道月分明。"],"我这个痴人办完了公事，在快阁东西凭栏眺望晚晴。落木千山显得天空更远大，澄江一道映着月色更分明。","写登阁所见，境界开阔。"],
+  ["春游湖","徐俯","宋",["双飞燕子几时回？夹岸桃花蘸水开。","春雨断桥人不度，小舟撑出柳阴来。"],"双飞的燕子几时回来的？两岸桃花蘸着水面盛开。春雨涨断了桥，行人过不去，一只小船从柳阴中撑了出来。","写春日游湖，清新明快。"],
+  ["暑旱苦热","王令","宋",["清风无力屠得热，落日着翅飞上山。","人固已惧江海竭，天岂不惜河汉干。"],"清风无力驱散这酷热，落日像长了翅膀不肯下山。人们本来就怕江海枯竭，上天难道不怜惜银河也晒干。","写大旱酷热，夸张有力，关切民生。"],
+  ["淮上与友人别","郑谷","唐",["扬子江头杨柳春，杨花愁杀渡江人。","数声风笛离亭晚，君向潇湘我向秦。"],"扬子江头杨柳青青，杨花纷飞愁坏了渡江的人。离亭傍晚风笛数声，你往潇湘我往秦地。","写江头送别，简洁而情浓。"],
+  ["题菊花","黄巢","唐",["飒飒西风满院栽，蕊寒香冷蝶难来。","他年我若为青帝，报与桃花一处开。"],"飒飒西风中满院栽满菊花，花蕊寒、香气冷，蝴蝶难来。他年我若做了司春之神，定让菊花与桃花一同开放。","借菊言志，气魄不凡。"],
+  ["田园乐（其六）","王维","唐",["桃红复含宿雨，柳绿更带朝烟。","花落家童未扫，莺啼山客犹眠。"],"桃花红艳还含着昨夜的雨滴，柳色碧绿更带着清晨的烟霭。落花满地家童还未打扫，黄莺啼鸣山客仍在酣睡。","写田园春晨的恬静，闲适自得。"]
+]);
+addPoems([
+  ["山坡羊·潼关怀古","张养浩","元",["峰峦如聚，波涛如怒，山河表里潼关路。","望西都，意踌躇。","伤心秦汉经行处，宫阙万间都做了土。","兴，百姓苦；亡，百姓苦。"],"山峰如聚，波涛如怒，潼关内外山河险要。遥望西都长安，心中感慨踌躇。可悲的是秦汉经过的地方，万间宫阙都化作了土。王朝兴起，百姓受苦；王朝灭亡，百姓还是受苦。","“兴，百姓苦；亡，百姓苦”深刻道出封建时代百姓的苦难。"],
+  ["天净沙·秋","白朴","元",["孤村落日残霞，轻烟老树寒鸦。","一点飞鸿影下，青山绿水，白草红叶黄花。"],"孤村、落日、残霞，轻烟、老树、寒鸦。一只飞雁的影子落下，青山绿水间，白草、红叶、黄花。","写秋景，色彩斑斓，明丽如画。"],
+  ["朝天子·咏喇叭","王磐","明",["喇叭，唢呐，曲儿小腔儿大。","官船来往乱如麻，全仗你抬声价。","军听了军愁，民听了民怕。","哪里去辨甚么真共假？眼见的吹翻了这家，吹伤了那家，只吹的水尽鹅飞罢。"],"喇叭，唢呐，曲子小腔调却大。官船来来往往乱如麻，全靠你抬高身价。兵听了兵发愁，民听了民害怕。哪里还分辨得了真假？眼见吹翻了这家，吹伤了那家，直吹得水尽鹅飞才算完。","借喇叭讽刺宦官扰民，诙谐辛辣。"],
+  ["别云间","夏完淳","明",["三年羁旅客，今日又南冠。","无限山河泪，谁言天地宽。","已知泉路近，欲别故乡难。","毅魄归来日，灵旗空际看。"],"三年来四处漂泊，如今又成了囚犯。为破碎山河流下无限眼泪，谁说天地宽广。已知死期将近，却难舍故乡。待我坚毅的魂魄归来之日，定能看到抗清的战旗在天空飘扬。","写国破家亡的悲愤与视死如归的气节。"],
+  ["明日歌","钱福","明",["明日复明日，明日何其多。","我生待明日，万事成蹉跎。","世人若被明日累，春去秋来老将至。","朝看水东流，暮看日西坠。","百年明日能几何？请君听我明日歌。"],"明天又一个明天，明天何其多。我这一生若总等待明天，万事都会蹉跎成空。世人若被明日拖累，春去秋来人就老了。早上看水东流，傍晚看日西落。人生百年的明天能有几个？请你听我这首明日歌。","劝人珍惜今日，莫把万事推明天。"],
+  ["咏煤炭","于谦","明",["凿开混沌得乌金，藏蓄阳和意最深。","爝火燃回春浩浩，洪炉照破夜沉沉。","鼎彝元赖生成力，铁石犹存死后心。","但愿苍生俱饱暖，不辞辛苦出山林。"],"凿开混沌的地层得到乌金般的煤炭，它蓄藏着温暖阳气，情意最深。小小火焰燃起浩浩春意，洪炉照亮沉沉黑夜。鼎彝原靠它的热力铸成，铁石般的身躯到死后仍存忠心。但愿天下百姓都吃饱穿暖，它不辞辛苦走出山林。","借煤炭喻献身报国、造福百姓的高尚情怀。"],
+  ["潍县署中画竹呈年伯包大中丞括","郑燮","清",["衙斋卧听萧萧竹，疑是民间疾苦声。","些小吾曹州县吏，一枝一叶总关情。"],"在衙署书房里躺着听萧萧竹声，疑心那是民间疾苦的呻吟。我们这些小小的州县官吏，百姓的一枝一叶都牵动着我们的心。","由竹声联想到民间疾苦，是郑板桥爱民情怀的写照。"],
+  ["论诗","赵翼","清",["李杜诗篇万口传，至今已觉不新鲜。","江山代有才人出，各领风骚数百年。"],"李白杜甫的诗篇万人传诵，如今读来已不觉新鲜。江山代代都有杰出人才涌现，各自引领风骚数百年。","主张创新，反对因循守旧，见解精辟。"],
+  ["狱中题壁","谭嗣同","清",["望门投止思张俭，忍死须臾待杜根。","我自横刀向天笑，去留肝胆两昆仑。"],"想起张俭望门投止的避难，像杜根那样忍死须臾等待。我自横刀向天大笑，去者留者都如昆仑山般光明磊落。","慷慨赴义，视死如归，气壮山河。"],
+  ["题秋江独钓图","王士祯","清",["一蓑一笠一扁舟，一丈丝纶一寸钩。","一曲高歌一樽酒，一人独钓一江秋。"],"一袭蓑衣一顶斗笠一叶扁舟，一丈钓丝一寸鱼钩。一曲高歌一壶美酒，一个人独钓一江秋色。","连用九个“一”字，写尽独钓的潇洒与孤高。"],
+  ["己亥杂诗（其二百二十）","龚自珍","清",["九州生气恃风雷，万马齐喑究可哀。","我劝天公重抖擞，不拘一格降人才。"],"中国的生机靠风雷激荡，万马齐喑的局面实在可悲。我劝老天重新振作精神，不拘一格地降下人才。","呼唤变革，渴望人才，气势磅礴。"],
+  ["苔","袁枚","清",["白日不到处，青春恰自来。","苔花如米小，也学牡丹开。"],"阳光照不到的地方，青苔的绿意却悄然来临。苔花虽像米粒一样小，也学着牡丹那样尽情开放。","写苔藓自强不息，激励平凡人绽放自己的光彩。"],
+  ["关雎（节选）","佚名","先秦",["关关雎鸠，在河之洲。","窈窕淑女，君子好逑。","参差荇菜，左右流之。","窈窕淑女，寤寐求之。"],"关关鸣叫的雎鸠，在河中的沙洲。美丽娴淑的女子，是君子的好配偶。长短不齐的荇菜，左右捞取。美丽娴淑的女子，醒着睡着都在追求。","《诗经》开篇，写君子对淑女的倾慕，乐而不淫。"],
+  ["蒹葭（节选）","佚名","先秦",["蒹葭苍苍，白露为霜。","所谓伊人，在水一方。","溯洄从之，道阻且长。","溯游从之，宛在水中央。"],"芦苇苍苍，白露凝成霜。我思念的那个人，就在水的那一方。逆流而上去寻她，道路险阻又漫长。顺流而下去寻她，仿佛就在水中央。","写求而不得的思念，朦胧凄美，意境深远。"],
+  ["采薇（节选）","佚名","先秦",["昔我往矣，杨柳依依。","今我来思，雨雪霏霏。","行道迟迟，载渴载饥。","我心伤悲，莫知我哀。"],"当年我离家出征时，杨柳依依飘拂。如今我归来时，雨雪纷纷飘洒。走在路上缓慢迟疑，又渴又饥。我心中多么伤悲，无人知道我心中的哀痛。","以景写情，昔今对比，写尽征人的悲苦。"],
+  ["江南","汉乐府","汉",["江南可采莲，莲叶何田田。","鱼戏莲叶间，鱼戏莲叶东。","鱼戏莲叶西，鱼戏莲叶南，鱼戏莲叶北。"],"江南正是采莲的好时节，莲叶多么茂盛。鱼儿在莲叶间嬉戏，忽而在东，忽而在西，忽而在南，忽而在北。","以回环往复的句式写江南采莲之乐，清新活泼。"],
+  ["长歌行","汉乐府","汉",["青青园中葵，朝露待日晞。","阳春布德泽，万物生光辉。","常恐秋节至，焜黄华叶衰。","百川东到海，何时复西归。","少壮不努力，老大徒伤悲。"],"园中青青的葵菜，清晨的露珠等着太阳晒干。阳春散布恩泽，万物焕发光辉。常担心秋天到来，叶儿枯黄花儿衰败。百川东流入海，何时能再向西流回。年轻时不努力，到老只能白白伤悲。","“少壮不努力，老大徒伤悲”劝人惜时，千古流传。"],
+  ["迢迢牵牛星","佚名","汉",["迢迢牵牛星，皎皎河汉女。","纤纤擢素手，札札弄机杼。","终日不成章，泣涕零如雨。","河汉清且浅，相去复几许。","盈盈一水间，脉脉不得语。"],"遥远的牵牛星，皎洁的织女星。她伸出纤细白嫩的手，札札地摆弄织机。却整天织不成布匹，眼泪像雨一样落下。银河又清又浅，相距又能有多远。就在这一水之间，却只能含情相望，不能说话。","借牛郎织女写相思，叠词连用，缠绵动人。"],
+  ["十五从军征","汉乐府","汉",["十五从军征，八十始得归。","道逢乡里人，家中有阿谁？","遥看是君家，松柏冢累累。"],"十五岁就从军出征，八十岁才得以归家。路上遇见同乡人，问家里还有谁。远远看去那就是你家，松柏间坟冢累累。","写老兵的悲惨遭遇，控诉战争的残酷。"],
+  ["木兰诗（节选）","佚名","北朝",["唧唧复唧唧，木兰当户织。","不闻机杼声，唯闻女叹息。","问女何所思，问女何所忆。","女亦无所思，女亦无所忆。"],"唧唧又唧唧，木兰对着门织布。听不到织机的声响，只听见木兰的叹息。问她在想什么，问她在思念什么。木兰说也没想什么，也没思念什么。","开篇以问答写出木兰的忧虑，为代父从军张本。"],
+  ["归园田居（其一）","陶渊明","晋",["少无适俗韵，性本爱丘山。","误落尘网中，一去三十年。","羁鸟恋旧林，池鱼思故渊。","开荒南野际，守拙归园田。","方宅十余亩，草屋八九间。","榆柳荫后檐，桃李罗堂前。","暧暧远人村，依依墟里烟。","狗吠深巷中，鸡鸣桑树颠。","户庭无尘杂，虚室有余闲。","久在樊笼里，复得返自然。"],"从小就没有迎合世俗的气质，天性本来喜爱山川田园。误落官场尘网中，一去就是三十年。笼中的鸟留恋旧林，池中的鱼思念故渊。在南野开荒，守着愚拙归隐田园。宅旁十余亩地，草屋八九间。榆柳遮着后檐，桃李列在堂前。远村依稀可见，炊烟袅袅升起。深巷中狗叫，桑树顶鸡鸣。庭院没有尘杂，静室里自有闲适。久在樊笼里，如今终于重返自然。","写归隐田园的喜悦，是陶渊明田园诗的代表作。"],
+  ["滕王阁诗","王勃","唐",["滕王高阁临江渚，佩玉鸣鸾罢歌舞。","画栋朝飞南浦云，珠帘暮卷西山雨。","闲云潭影日悠悠，物换星移几度秋。","阁中帝子今何在？槛外长江空自流。"],"高高的滕王阁临着江边，佩玉鸾铃的歌舞早已停歇。早晨画栋间飞过南浦的云，傍晚珠帘卷起西山的雨。闲云潭影日日悠悠，物换星移几度春秋。阁中的帝子如今在哪里？只有槛外的长江依旧空自奔流。","写滕王阁的兴废，感慨时光流转、人事变迁。"],
+  ["于易水送人","骆宾王","唐",["此地别燕丹，壮士发冲冠。","昔时人已没，今日水犹寒。"],"荆轲曾在这里辞别燕太子丹，壮士怒发冲冠。从前的英雄早已消逝，今天的易水依旧寒冷。","借荆轲刺秦的典故，抒发慷慨悲壮之情。"],
+  ["终南别业","王维","唐",["中岁颇好道，晚家南山陲。","兴来每独往，胜事空自知。","行到水穷处，坐看云起时。","偶然值林叟，谈笑无还期。"],"中年以后颇好佛道，晚年安家在南山边。兴致来了就独自出游，美好的事只有自己知道。走到水流的尽头，便坐下看云起云落。偶然遇到林中老人，谈笑间忘了回家。","“行到水穷处，坐看云起时”写随遇而安的禅意。"],
+  ["汉江临眺","王维","唐",["楚塞三湘接，荆门九派通。","江流天地外，山色有无中。","郡邑浮前浦，波澜动远空。","襄阳好风日，留醉与山翁。"],"楚地边塞与三湘相接，荆门与九派相连。江水奔流仿佛流向天地之外，山色在若有若无之间。城郭仿佛浮在前方水滨，波澜撼动着远处的天空。襄阳的风光多么美好，真想留下与山翁共醉。","“江流天地外，山色有无中”写汉江浩渺，气魄宏大。"],
+  ["子夜吴歌·秋歌","李白","唐",["长安一片月，万户捣衣声。","秋风吹不尽，总是玉关情。","何日平胡虏，良人罢远征。"],"长安城洒满一片月光，千家万户响起捣衣声。秋风吹不尽这思念，总是牵挂着玉门关外的征人。何时才能平定胡虏，让丈夫结束远征。","写思妇对征人的思念，关切民生疾苦。"],
+  ["听蜀僧濬弹琴","李白","唐",["蜀僧抱绿绮，西下峨眉峰。","为我一挥手，如听万壑松。","客心洗流水，余响入霜钟。","不觉碧山暮，秋云暗几重。"],"蜀地僧人抱着绿绮琴，从西边走下峨眉峰。为我挥手弹琴，如听万壑松涛。我的心被流水般的琴声洗净，余音融入霜钟。不觉青山已暮，秋云暗了几重。","写琴声之高妙，意境清远。"],
+  ["山中与幽人对酌","李白","唐",["两人对酌山花开，一杯一杯复一杯。","我醉欲眠卿且去，明朝有意抱琴来。"],"两人在山花盛开时对饮，一杯又一杯。我醉了想睡，你先去吧，明天若有兴致再抱琴来。","写与友人共饮的率真洒脱。"],
+  ["从军行（其二）","王昌龄","唐",["琵琶起舞换新声，总是关山旧别情。","撩乱边愁听不尽，高高秋月照长城。"],"琵琶起舞换了新曲，却仍是关山旧日的别情。撩乱人心的边愁听不尽，高高的秋月照着长城。","写边塞将士的乡愁，情景交融。"],
+  ["塞下曲（其二）","卢纶","唐",["林暗草惊风，将军夜引弓。","平明寻白羽，没在石棱中。"],"林深草密忽然风吹草动，将军夜里引弓射箭。天亮去寻找白羽箭，箭头竟深深没入石棱之中。","写将军勇力过人，暗用李广射石典故。"],
+  ["江村","杜甫","唐",["清江一曲抱村流，长夏江村事事幽。","自去自来堂上燕，相亲相近水中鸥。","老妻画纸为棋局，稚子敲针作钓钩。","但有故人供禄米，微躯此外更何求。"],"清澈的江水弯弯曲曲环绕村庄，长夏的江村事事幽静。堂上燕子自来自去，水中鸥鸟相亲相近。老妻画纸做棋盘，孩子敲针做钓钩。只要有故人接济禄米，我这微贱之身还求什么呢。","写江村生活的安宁，充满天伦之乐。"],
+  ["客至","杜甫","唐",["舍南舍北皆春水，但见群鸥日日来。","花径不曾缘客扫，蓬门今始为君开。","盘飧市远无兼味，樽酒家贫只旧醅。","肯与邻翁相对饮，隔篱呼取尽余杯。"],"屋南屋北都是春水，只见群鸥日日飞来。花间小路不曾因客来而扫，蓬草编的门今日才为你打开。集市太远没什么好菜，家里清贫只有陈酒。你肯与邻家老翁对饮，我就隔着篱笆招呼他来尽兴。","写待客的朴实真诚，洋溢生活气息。"],
+  ["登岳阳楼","杜甫","唐",["昔闻洞庭水，今上岳阳楼。","吴楚东南坼，乾坤日夜浮。","亲朋无一字，老病有孤舟。","戎马关山北，凭轩涕泗流。"],"从前就听说洞庭湖，今日登上岳阳楼。湖水把吴楚分隔在东南，天地仿佛日夜在湖上浮动。亲友没有一字音信，年老多病只有孤舟相伴。关山以北战火未熄，倚窗远望不禁老泪纵横。","“吴楚东南坼，乾坤日夜浮”写洞庭壮阔，末句忧国忧民。"],
+  ["菩萨蛮·人人尽说江南好","韦庄","五代",["人人尽说江南好，游人只合江南老。","春水碧于天，画船听雨眠。","垆边人似月，皓腕凝霜雪。","未老莫还乡，还乡须断肠。"],"人人都说江南好，游人就该在江南终老。春水比天空还碧绿，在画船里听着雨声入睡。酒垆边的女子美得像明月，洁白的腕子如霜雪凝成。未老时不要回乡，回乡只会令人断肠。","写江南之美与思乡之痛，反衬情深。"],
+  ["天仙子·水调数声持酒听","张先","宋",["水调数声持酒听，午醉醒来愁未醒。","送春春去几时回？临晚镜，伤流景，往事后期空记省。","沙上并禽池上暝，云破月来花弄影。","重重帘幕密遮灯，风不定，人初静，明日落红应满径。"],"手持酒杯听了几声《水调》，午醉醒来愁仍未消。送走春天，春去几时再回？傍晚对镜，感伤流逝的光景，往事与约期都空自记挂。沙滩上鸳鸯并卧，池畔暮色降临，云破月出，花影摇曳弄姿。重重帘幕密密遮着灯，风不定，人刚静，明日落花应铺满小径。","“云破月来花弄影”写景精妙，是张先得意之笔。"],
+  ["破阵子·燕子来时新社","晏殊","宋",["燕子来时新社，梨花落后清明。","池上碧苔三四点，叶底黄鹂一两声。","日长飞絮轻。","巧笑东邻女伴，采桑径里逢迎。","疑怪昨宵春梦好，元是今朝斗草赢。","笑从双脸生。"],"燕子飞来时正值春社，梨花落后又是清明。池上碧苔三四点，叶底黄鹂一两声。白天渐长，飞絮轻扬。东邻女伴巧笑相迎，在采桑小路上相遇。怪不得昨夜春梦那么好，原来是今早斗草赢了。笑容从双颊漾开。","写少女春日嬉戏，清新活泼，洋溢青春气息。"],
+  ["采桑子·轻舟短棹西湖好","欧阳修","宋",["轻舟短棹西湖好，绿水逶迤。","芳草长堤，隐隐笙歌处处随。","无风水面琉璃滑，不觉船移。","微动涟漪，惊起沙禽掠岸飞。"],"轻舟短桨游西湖多好，绿水蜿蜒曲折。长堤上芳草青青，隐隐笙歌处处相随。无风时水面如琉璃般光滑，不觉船在移动。微微荡起涟漪，惊得水鸟掠岸飞起。","写西湖春游，清丽明快，如诗如画。"],
+  ["浪淘沙·把酒祝东风","欧阳修","宋",["把酒祝东风，且共从容。","垂杨紫陌洛城东。","总是当时携手处，游遍芳丛。","聚散苦匆匆，此恨无穷。","今年花胜去年红。","可惜明年花更好，知与谁同？"],"举酒祝愿东风，且一起从容。洛城东的垂杨紫陌，都是当年携手同游之处，曾游遍花丛。聚散苦于太匆匆，这离恨无穷无尽。今年的花比去年更红，可惜明年花会更好，却不知与谁同赏。","写惜春怀人，感慨聚散匆匆。"],
+  ["桂枝香·金陵怀古（节选）","王安石","宋",["登临送目，正故国晚秋，天气初肃。","千里澄江似练，翠峰如簇。","归帆去棹残阳里，背西风，酒旗斜矗。","彩舟云淡，星河鹭起，画图难足。"],"登高远望，正值故都金陵的晚秋，天气初显肃杀。千里澄江像一条白练，翠峰如箭簇般耸立。归帆在残阳中远去，背西风，酒旗斜插。彩舟隐现云淡处，白鹭从星河般的水面飞起，美景难以画尽。","写金陵秋景，气势雄浑，被誉为金陵怀古词之冠。"],
+  ["水龙吟·次韵章质夫杨花词（节选）","苏轼","宋",["似花还似非花，也无人惜从教坠。","抛家傍路，思量却是，无情有思。","萦损柔肠，困酣娇眼，欲开还闭。","梦随风万里，寻郎去处，又还被、莺呼起。"],"像花又不像花，也无人怜惜，任凭它飘落。抛家傍路，细想来却是有情有思。愁思萦绕损了柔肠，困倦的娇眼欲开还闭。梦随风吹到万里之外，去寻找郎君的去处，却又被黄莺啼声惊醒。","咏杨花而抒离愁，细腻缠绵，为苏轼婉约词名篇。"],
+  ["苏幕遮·碧云天","范仲淹","宋",["碧云天，黄叶地，秋色连波，波上寒烟翠。","山映斜阳天接水，芳草无情，更在斜阳外。","黯乡魂，追旅思，夜夜除非，好梦留人睡。","明月楼高休独倚，酒入愁肠，化作相思泪。"],"碧蓝的天空，铺满黄叶的大地，秋色连着水波，波上寒烟凝翠。山映着斜阳，天连着水，芳草无情，更远在斜阳之外。思念家乡黯然销魂，追怀旅愁，除非夜夜有好梦才能安睡。明月高楼不要独自倚栏，酒入愁肠，都化作了相思泪。","写羁旅乡愁，情景交融，苍凉柔婉。"],
+  ["小重山·昨夜寒蛩不住鸣","岳飞","宋",["昨夜寒蛩不住鸣，惊回千里梦，已三更。","起来独自绕阶行，人悄悄，帘外月胧明。","白首为功名，旧山松竹老，阻归程。","欲将心事付瑶琴，知音少，弦断有谁听。"],"昨夜寒蝉不停地鸣叫，惊醒了千里之外的梦，已是三更。起来独自绕着台阶徘徊，四周静悄悄，帘外月色朦胧。为功名熬白了头，故乡的松竹已老，归程却被阻隔。想把心事托付给瑶琴，可惜知音太少，弦断了又有谁听。","写壮志难酬的孤愤与知音难觅的苦闷。"],
+  ["渔家傲·天接云涛连晓雾","李清照","宋",["天接云涛连晓雾，星河欲转千帆舞。","仿佛梦魂归帝所，闻天语，殷勤问我归何处。","我报路长嗟日暮，学诗谩有惊人句。","九万里风鹏正举，风休住，蓬舟吹取三山去。"],"天连着云涛，云涛连着晓雾，银河欲转，千帆起舞。仿佛梦魂回到天帝居所，听到天帝说话，殷切地问我要归向何处。我回答路还漫长，只叹日已迟暮，学诗空有惊人句。九万里风正托起大鹏，风不要停，把我的小船吹到海上仙山去。","想象瑰奇，气魄豪迈，是李清照词中少见的浪漫主义名篇。"],
+  ["清平乐·年年雪里","李清照","宋",["年年雪里，常插梅花醉。","挼尽梅花无好意，赢得满衣清泪。","今年海角天涯，萧萧两鬓生华。","看取晚来风势，故应难看梅花。"],"年年雪中，常折梅花插戴，沉醉其间。如今揉尽梅花也无好心情，只赢得满衣清泪。今年漂泊到海角天涯，两鬓已萧萧生白。看那傍晚的风势渐大，想来明早梅花也难再观赏了。","借赏梅写身世飘零，今昔对比，凄苦动人。"],
+  ["蝶恋花·暖雨晴风初破冻","李清照","宋",["暖雨晴风初破冻，柳眼梅腮，已觉春心动。","酒意诗情谁与共？泪融残粉花钿重。","乍试夹衫金缕缝，山枕斜欹，枕损钗头凤。","独抱浓愁无好梦，夜阑犹剪灯花弄。"],"暖雨晴风初破冰封，柳芽如眼，梅瓣如腮，已觉春心萌动。可这酒意诗情与谁共享？泪水融残了脂粉，花钿也显得沉重。试着穿上金线缝的夹衫，斜倚山枕，枕坏了钗头凤。独抱浓愁难有好梦，夜深了还剪着灯花把玩。","写春日孤独与相思，婉约细腻。"],
+  ["行香子·树绕村庄","秦观","宋",["树绕村庄，水满陂塘。","倚东风，豪兴徜徉。","小园几许，收尽春光。","有桃花红，李花白，菜花黄。","远远围墙，隐隐茅堂。","飏青旗，流水桥旁。","偶然乘兴，步过东冈。","正莺儿啼，燕儿舞，蝶儿忙。"],"绿树环绕村庄，春水涨满池塘。迎着东风，兴致勃勃地徜徉。小园虽不大，却收尽了春光。有红艳的桃花，雪白的李花，金黄的菜花。远远的围墙，隐隐的茅屋。青旗飘扬，流水桥旁。偶然乘兴，走过东冈。只见黄莺啼，燕子舞，蝴蝶忙。","写春日乡村的盎然生机，色彩明丽，明快如歌。"],
+  ["念奴娇·过洞庭（节选）","张孝祥","宋",["洞庭青草，近中秋、更无一点风色。","玉鉴琼田三万顷，着我扁舟一叶。","素月分辉，明河共影，表里俱澄澈。","悠然心会，妙处难与君说。"],"洞庭湖与青草湖相连，临近中秋，更无一点风色。三万顷湖面如玉镜琼田，载着我这一叶扁舟。皎月分洒清辉，银河与湖影相映，里外都澄澈透明。我悠然心领神会，这妙处难以向你言说。","写洞庭月夜的澄澈，表里如一，寄托高洁胸怀。"],
+  ["虞美人·听雨","蒋捷","宋",["少年听雨歌楼上，红烛昏罗帐。","壮年听雨客舟中，江阔云低、断雁叫西风。","而今听雨僧庐下，鬓已星星也。","悲欢离合总无情，一任阶前、点滴到天明。"],"少年时在歌楼上听雨，红烛昏照着罗帐。壮年时在客舟中听雨，江阔云低，孤雁在西风中哀鸣。如今在僧庐下听雨，两鬓已经斑白。悲欢离合总这般无情，任凭阶前雨声，点点滴滴直到天明。","以听雨贯穿一生，写尽人生三阶段的心境。"],
+  ["一剪梅·舟过吴江","蒋捷","宋",["一片春愁待酒浇，江上舟摇，楼上帘招。","秋娘渡与泰娘桥，风又飘飘，雨又萧萧。","何日归家洗客袍？银字笙调，心字香烧。","流光容易把人抛，红了樱桃，绿了芭蕉。"],"一片春愁等着用酒来浇，江上小船摇晃，楼上酒帘招展。经过秋娘渡和泰娘桥，风又飘飘，雨又萧萧。何时才能回家洗去客袍上的风尘？调起银字笙，点起心字香。流光容易把人抛弃，红了樱桃，绿了芭蕉。","“红了樱桃，绿了芭蕉”以色彩写流光，脍炙人口。"],
+  ["摸鱼儿·更能消几番风雨（节选）","辛弃疾","宋",["更能消、几番风雨，匆匆春又归去。","惜春长怕花开早，何况落红无数。","春且住，见说道、天涯芳草无归路。","怨春不语，算只有殷勤，画檐蛛网，尽日惹飞絮。"],"还能经得起几番风雨？春天又匆匆归去。爱惜春天，常怕花开得太早，何况如今已是落红无数。春天啊请停一停，听说天涯芳草已遮断你的归路。埋怨春天默默不语，算来只有画檐下的蛛网，整日殷勤地招惹飞絮。","惜春伤春，暗含对国事的忧虑，沉郁顿挫。"]
+]);
+// 【在此追加诗词】 addPoems([...]);
+
+/* ============ 工具 ============ */
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function normalize(s) {
+  return String(s).replace(/[^一-龥]/g, "").trim();
+}
+function $(id) { return document.getElementById(id); }
+
+/* ============ 选项卡切换 ============ */
+document.querySelectorAll("nav button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+    $(btn.dataset.tab).classList.add("active");
+  });
+});
+
+/* ============ 通用选择题渲染 ============ */
+function renderChoice(containerId, data, idx, onAnswer) {
+  const item = data[idx];
+  const opts = shuffle(item.options);
+  const box = $(containerId);
+  box.innerHTML = "";
+  opts.forEach(opt => {
+    const b = document.createElement("button");
+    b.textContent = opt;
+    b.addEventListener("click", () => onAnswer(opt, b, box, item.answer));
+    box.appendChild(b);
+  });
+}
+function lockOptions(box) {
+  box.querySelectorAll("button").forEach(b => b.disabled = true);
+}
+function markAnswer(selectedBtn, box, correct) {
+  lockOptions(box);
+  box.querySelectorAll("button").forEach(b => {
+    if (b.textContent === correct) b.classList.add("correct");
+  });
+  if (selectedBtn.textContent !== correct) selectedBtn.classList.add("wrong");
+}
+function resultMessage(score, total) {
+  const pct = score / total;
+  if (pct === 1) return "🏆 满分！你是诗词达人！";
+  if (pct >= 0.9) return "🌟 太厉害了，接近满分！";
+  if (pct >= 0.7) return "👍 很不错，继续加油！";
+  if (pct >= 0.5) return "📚 有一定基础，多读多记会更好！";
+  return "🌱 没关系，先去“诗词赏析”读一读，再来挑战！";
+}
+function showSummary(containerId, msg, total) {
+  const box = $(containerId);
+  box.innerHTML = "";
+  const div = document.createElement("div");
+  div.style.textAlign = "center";
+  div.style.padding = "30px 0";
+  div.innerHTML = "<div style='font-size:48px;margin-bottom:12px;'>" +
+    (msg.includes("满分") || msg.includes("达人") ? "🏆" : msg.includes("太厉害") || msg.includes("不错") ? "🎉" : "💪") +
+    "</div><div style='font-size:24px;margin-bottom:10px;'>" + msg + "</div>";
+  const restart = document.createElement("button");
+  restart.className = "primary-btn";
+  restart.textContent = "再来一次";
+  restart.addEventListener("click", () => {
+    if (containerId === "quiz-options") startQuiz();
+    else if (containerId === "emoji-summary") startEmoji();
+    else startFill();
+  });
+  div.appendChild(restart);
+  box.appendChild(div);
+}
+
+/* ============ 闯关答题 ============ */
+let quizIdx = 0, quizScore = 0, quizLevel = "all", quizPool = [];
+
+document.querySelectorAll("#quiz .level-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#quiz .level-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    quizLevel = btn.dataset.level;
+    startQuiz();
+  });
+});
+
+function startQuiz() {
+  quizIdx = 0; quizScore = 0;
+  quizPool = quizData.filter(q => quizLevel === "all" || q.level === Number(quizLevel));
+  quizPool.sort(() => Math.random() - 0.5);
+  $("quiz-next").disabled = false;
+  $("quiz-next").textContent = "下一题";
+  $("quiz-feedback").textContent = "";
+  $("quiz-feedback").className = "feedback";
+  renderQuiz();
+}
+function renderQuiz() {
+  $("quiz-score").textContent = quizScore;
+  $("quiz-progress").textContent = "第 " + (quizIdx + 1) + " / " + quizPool.length + " 题";
+  $("quiz-bar").style.width = ((quizIdx) / quizPool.length * 100) + "%";
+  const item = quizPool[quizIdx];
+  const lv = item.level === 2 ? "<span class='tag lv2'>进阶</span>" : "<span class='tag'>基础</span>";
+  $("quiz-q").innerHTML = lv + item.q;
+  $("quiz-feedback").textContent = "";
+  $("quiz-feedback").className = "feedback";
+  $("quiz-next").disabled = true;
+  renderChoice("quiz-options", quizPool, quizIdx, (chosen, btn, box, answer) => {
+    const ok = chosen === answer;
+    markAnswer(btn, box, answer);
+    if (ok) {
+      quizScore++;
+      $("quiz-score").textContent = quizScore;
+      $("quiz-feedback").textContent = "✅ 回答正确！";
+      $("quiz-feedback").className = "feedback ok";
+    } else {
+      $("quiz-feedback").textContent = "❌ 答错了，正确答案是「" + answer + "」";
+      $("quiz-feedback").className = "feedback no";
+    }
+    $("quiz-next").disabled = false;
+  });
+}
+$("quiz-next").addEventListener("click", () => {
+  quizIdx++;
+  if (quizIdx >= quizPool.length) {
+    $("quiz-bar").style.width = "100%";
+    $("quiz-q").innerHTML = "";
+    showSummary("quiz-options", resultMessage(quizScore, quizPool.length) + "（答对 " + quizScore + " / " + quizPool.length + "）", quizPool.length);
+    $("quiz-feedback").textContent = "";
+    $("quiz-progress").textContent = "已完成";
+    $("quiz-next").disabled = true;
+  } else {
+    renderQuiz();
+  }
+});
+
+/* ============ 诗词填空 ============ */
+let fillIdx = 0, fillScore = 0;
+function startFill() {
+  fillIdx = 0; fillScore = 0;
+  fillData.sort(() => Math.random() - 0.5);
+  $("fill-line").style.display = "";
+  $("fill-input-row").style.display = "";
+  $("fill-options").innerHTML = "";
+  $("fill-input").value = "";
+  $("fill-input").disabled = false;
+  $("fill-submit").disabled = false;
+  $("fill-next").disabled = false;
+  $("fill-next").textContent = "下一题";
+  $("fill-feedback").textContent = "";
+  $("fill-feedback").className = "feedback";
+  $("fill-source").textContent = "";
+  renderFill();
+}
+function renderFill() {
+  $("fill-score").textContent = fillScore;
+  $("fill-progress").textContent = "第 " + (fillIdx + 1) + " / " + fillData.length + " 题";
+  $("fill-bar").style.width = ((fillIdx) / fillData.length * 100) + "%";
+  $("fill-line").innerHTML = fillData[fillIdx].line + "<span class='blank'>＿＿＿</span>";
+  $("fill-input").value = "";
+  $("fill-input").disabled = false;
+  $("fill-submit").disabled = false;
+  $("fill-feedback").textContent = "";
+  $("fill-feedback").className = "feedback";
+  $("fill-source").textContent = "";
+  $("fill-next").disabled = true;
+  $("fill-input").focus();
+}
+function checkFill() {
+  const ans = normalize($("fill-input").value);
+  if (!ans) { $("fill-feedback").textContent = "请先填写答案哦～"; $("fill-feedback").className = "feedback"; return; }
+  const correct = normalize(fillData[fillIdx].answer);
+  if (ans === correct) {
+    fillScore++;
+    $("fill-score").textContent = fillScore;
+    $("fill-feedback").textContent = "✅ 太棒了，答对啦！";
+    $("fill-feedback").className = "feedback ok";
+  } else {
+    $("fill-feedback").textContent = "❌ 还差一点，正确答案是「" + fillData[fillIdx].answer + "」";
+    $("fill-feedback").className = "feedback no";
+  }
+  $("fill-source").textContent = "—— " + fillData[fillIdx].source;
+  $("fill-input").disabled = true;
+  $("fill-submit").disabled = true;
+  $("fill-next").disabled = false;
+}
+$("fill-submit").addEventListener("click", checkFill);
+$("fill-input").addEventListener("keydown", e => { if (e.key === "Enter") checkFill(); });
+$("fill-next").addEventListener("click", () => {
+  fillIdx++;
+  if (fillIdx >= fillData.length) {
+    $("fill-bar").style.width = "100%";
+    $("fill-line").style.display = "none";
+    $("fill-input-row").style.display = "none";
+    $("fill-source").textContent = "";
+    showSummary("fill-options", resultMessage(fillScore, fillData.length) + "（答对 " + fillScore + " / " + fillData.length + "）", fillData.length);
+    $("fill-feedback").textContent = "";
+    $("fill-progress").textContent = "已完成";
+    $("fill-next").disabled = true;
+  } else {
+    renderFill();
+  }
+});
+
+/* ============ 看图猜诗 ============ */
+let emojiIdx = 0, emojiScore = 0, emojiMode = "easy", emojiPool = [];
+
+document.querySelectorAll("#emoji .level-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#emoji .level-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    emojiMode = btn.dataset.level;
+    startEmoji();
+  });
+});
+
+function startEmoji() {
+  emojiIdx = 0; emojiScore = 0;
+  emojiPool = (emojiMode === "easy" ? emojiData : emojiHardData).slice();
+  emojiPool.sort(() => Math.random() - 0.5);
+  $("emoji-easy").style.display = emojiMode === "easy" ? "" : "none";
+  $("emoji-hard").style.display = emojiMode === "hard" ? "" : "none";
+  $("emoji-summary").innerHTML = "";
+  $("emoji-source").textContent = "";
+  $("emoji-next").disabled = false;
+  $("emoji-next").textContent = "下一题";
+  $("emoji-feedback").textContent = "";
+  $("emoji-feedback").className = "feedback";
+  renderEmoji();
+}
+
+function renderEmoji() {
+  $("emoji-score").textContent = emojiScore;
+  $("emoji-progress").textContent = "第 " + (emojiIdx + 1) + " / " + emojiPool.length + " 题";
+  $("emoji-bar").style.width = ((emojiIdx) / emojiPool.length * 100) + "%";
+  $("emoji-feedback").textContent = "";
+  $("emoji-feedback").className = "feedback";
+  $("emoji-source").textContent = "";
+  $("emoji-next").disabled = true;
+
+  if (emojiMode === "easy") {
+    $("emoji-frame").textContent = emojiPool[emojiIdx].emoji;
+    renderChoice("emoji-options", emojiPool, emojiIdx, (chosen, btn, box, answer) => {
+      const ok = chosen === answer;
+      markAnswer(btn, box, answer);
+      if (ok) {
+        emojiScore++;
+        $("emoji-score").textContent = emojiScore;
+        $("emoji-feedback").textContent = "✅ 猜对啦，就是《" + answer + "》！";
+        $("emoji-feedback").className = "feedback ok";
+      } else {
+        $("emoji-feedback").textContent = "❌ 再想想～正确答案是《" + answer + "》";
+        $("emoji-feedback").className = "feedback no";
+      }
+      $("emoji-next").disabled = false;
+    });
+  } else {
+    const item = emojiPool[emojiIdx];
+    $("scene-frame").innerHTML = item.scene;
+    $("scene-hint").textContent = "根据这幅水墨画，写出诗名或诗句";
+    $("scene-input").value = "";
+    $("scene-input").disabled = false;
+    $("scene-submit").disabled = false;
+    $("scene-hint-btn").disabled = false;
+    $("scene-answer-btn").disabled = false;
+    $("scene-input").focus();
+  }
+}
+
+function checkScene() {
+  const item = emojiPool[emojiIdx];
+  const val = normalize($("scene-input").value);
+  if (!val) { $("emoji-feedback").textContent = "请先写下你的答案哦～"; $("emoji-feedback").className = "feedback"; return; }
+  const ok = item.answers.some(a => normalize(a) === val);
+  if (ok) {
+    emojiScore++;
+    $("emoji-score").textContent = emojiScore;
+    $("emoji-feedback").textContent = "✅ 猜对了！答案是《" + item.title + "》——" + item.author;
+    $("emoji-feedback").className = "feedback ok";
+  } else {
+    $("emoji-feedback").textContent = "❌ 还不对哦，可以点「💡 提示」再看看";
+    $("emoji-feedback").className = "feedback no";
+  }
+  $("emoji-source").textContent = item.hint;
+  $("scene-input").disabled = true;
+  $("scene-submit").disabled = true;
+  $("scene-hint-btn").disabled = true;
+  $("scene-answer-btn").disabled = true;
+  $("emoji-next").disabled = false;
+}
+
+$("scene-submit").addEventListener("click", checkScene);
+$("scene-input").addEventListener("keydown", e => { if (e.key === "Enter") checkScene(); });
+$("scene-hint-btn").addEventListener("click", () => {
+  const item = emojiPool[emojiIdx];
+  $("scene-hint").textContent = "💡 提示：" + item.hint + "（作者：" + item.author + "）";
+});
+$("scene-answer-btn").addEventListener("click", () => {
+  const item = emojiPool[emojiIdx];
+  $("scene-hint").textContent = "答案：《" + item.title + "》——" + item.author + "　" + item.hint;
+});
+
+$("emoji-next").addEventListener("click", () => {
+  emojiIdx++;
+  if (emojiIdx >= emojiPool.length) {
+    $("emoji-bar").style.width = "100%";
+    $("emoji-easy").style.display = "none";
+    $("emoji-hard").style.display = "none";
+    $("emoji-source").textContent = "";
+    showSummary("emoji-summary", resultMessage(emojiScore, emojiPool.length) + "（答对 " + emojiScore + " / " + emojiPool.length + "）", emojiPool.length);
+    $("emoji-feedback").textContent = "";
+    $("emoji-progress").textContent = "已完成";
+    $("emoji-next").disabled = true;
+  } else {
+    renderEmoji();
+  }
+});
+
+/* ============ 诗词赏析 ============ */
+function renderPoems(keyword) {
+  const kw = (keyword || "").trim();
+  const list = $("poem-list");
+  list.innerHTML = "";
+  const allPoems = poemData.concat(poemExtra);
+  const filtered = allPoems.filter(p =>
+    !kw || p.title.includes(kw) || p.author.includes(kw) || p.text.join("").includes(kw)
+  );
+  if (filtered.length === 0) {
+    list.innerHTML = "<div class='empty'>没有找到相关诗词，换个词试试吧～</div>";
+    return;
+  }
+  filtered.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "poem-card";
+    let body = "<div class='block-title'>◈ 原 文</div>" +
+      "<div class='orig'>" + p.text.join("<br>") + "</div>";
+    if (p.translation) body += "<div class='block-title'>◈ 译 文</div><div class='block-text'>" + p.translation + "</div>";
+    if (p.appreciation) body += "<div class='block-title'>◈ 赏 析</div><div class='block-text'>" + p.appreciation + "</div>";
+    card.innerHTML =
+      "<div class='poem-head'>" +
+        "<span class='poem-title'>" + p.title + "</span>" +
+        "<span class='poem-meta'>" + p.dynasty + " · " + p.author + "</span>" +
+      "</div>" +
+      "<div class='poem-first'>" + p.text[0] + "</div>" +
+      "<div class='poem-body'>" + body + "</div>";
+    card.addEventListener("click", () => card.classList.toggle("open"));
+    list.appendChild(card);
+  });
+}
+$("poem-search").addEventListener("input", e => renderPoems(e.target.value));
+
+/* ============ 飞花令 ============ */
+let fhState = { key: "", first: "you", used: new Set(), pool: [], round: 0, youCount: 0, pcCount: 0, over: false, timer: null };
+
+function fhBuildPool(key) {
+  const allPoems = poemData.concat(poemExtra);
+  const seen = new Set();
+  const pool = [];
+  allPoems.forEach(p => {
+    (p.text || []).forEach(line => {
+      if (line.indexOf(key) !== -1) {
+        const n = normalize(line);
+        if (n && !seen.has(n)) {
+          seen.add(n);
+          pool.push({ line, norm: n, src: p.title + "·" + p.author });
+        }
+      }
+    });
+  });
+  return pool;
+}
+function fhLog(role, line, src) {
+  const box = $("fh-log");
+  const div = document.createElement("div");
+  div.className = "fh-turn-item";
+  const name = role === "you" ? "你" : "电脑";
+  div.innerHTML = "<div class='fh-role " + role + "'>" + name + "</div>" +
+    "<div class='fh-said'>" + line + (src ? "<span class='fh-src'>—— " + src + "</span>" : "") + "</div>";
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+function fhReset(key) {
+  if (fhState.timer) { clearTimeout(fhState.timer); fhState.timer = null; }
+  fhState.key = key;
+  fhState.used = new Set();
+  fhState.pool = fhBuildPool(key);
+  fhState.round = 0;
+  fhState.youCount = 0;
+  fhState.pcCount = 0;
+  fhState.over = false;
+  $("fh-log").innerHTML = "";
+  $("fh-feedback").textContent = "";
+  $("fh-feedback").className = "feedback";
+  $("fh-round").textContent = "0";
+  $("fh-input").disabled = false;
+  $("fh-submit").disabled = false;
+  if (fhState.pool.length === 0) {
+    $("fh-status").textContent = "「" + key + "」字在诗词库中没有找到诗句，换个字试试。";
+    $("fh-input").disabled = true;
+    $("fh-submit").disabled = true;
+    fhState.over = true;
+    return;
+  }
+  $("fh-status").textContent = "题目字「" + key + "」｜电脑有 " + fhState.pool.length + " 句可用";
+  if (fhState.first === "pc") fhPcMove();
+}
+function fhPcMove() {
+  const avail = fhState.pool.filter(p => !fhState.used.has(p.norm));
+  if (avail.length === 0) { fhEnd(true); return; }
+  const pick = avail[Math.floor(Math.random() * avail.length)];
+  fhState.used.add(pick.norm);
+  fhState.pcCount++;
+  fhState.round++;
+  $("fh-round").textContent = fhState.round;
+  fhLog("pc", pick.line, pick.src);
+  $("fh-status").textContent = "轮到你了｜电脑还有 " + (avail.length - 1) + " 句可用";
+}
+function fhEnd(playerWin) {
+  fhState.over = true;
+  $("fh-input").disabled = true;
+  $("fh-submit").disabled = true;
+  if (playerWin) {
+    $("fh-feedback").textContent = "🎉 电脑接不上了，你赢了！你共接了 " + fhState.youCount + " 句。";
+    $("fh-feedback").className = "feedback ok";
+  } else {
+    $("fh-feedback").textContent = "🏳️ 电脑获胜。你共接了 " + fhState.youCount + " 句，已经很棒了！";
+    $("fh-feedback").className = "feedback no";
+  }
+  $("fh-status").textContent = "对局结束";
+}
+function fhSubmit() {
+  if (fhState.over) { $("fh-feedback").textContent = "对局已结束，点「重新开始」再来一局吧。"; $("fh-feedback").className = "feedback no"; return; }
+  if (!fhState.key) { $("fh-feedback").textContent = "请先在上面选一个题目字。"; $("fh-feedback").className = "feedback no"; return; }
+  const raw = $("fh-input").value.trim();
+  if (!raw) return;
+  const n = normalize(raw);
+  if (n.indexOf(fhState.key) === -1) {
+    $("fh-feedback").textContent = "这句里没有「" + fhState.key + "」字，请换一句。";
+    $("fh-feedback").className = "feedback no";
+    return;
+  }
+  if (fhState.used.has(n)) {
+    $("fh-feedback").textContent = "这句已经用过了，换一句吧。";
+    $("fh-feedback").className = "feedback no";
+    return;
+  }
+  fhState.used.add(n);
+  fhState.youCount++;
+  fhState.round++;
+  $("fh-round").textContent = fhState.round;
+  fhLog("you", raw, "");
+  $("fh-input").value = "";
+  $("fh-feedback").textContent = "";
+  $("fh-feedback").className = "feedback";
+  $("fh-status").textContent = "电脑思考中……";
+  fhState.timer = setTimeout(() => { fhState.timer = null; fhPcMove(); }, 700);
+}
+function fhApplyCustom() {
+  const v = normalize($("fh-custom").value);
+  if (v.length !== 1) {
+    if ($("fh-custom").value.trim()) { $("fh-feedback").textContent = "请输入一个汉字。"; $("fh-feedback").className = "feedback no"; }
+    return;
+  }
+  document.querySelectorAll(".fh-key").forEach(x => x.classList.remove("active"));
+  fhReset(v);
+}
+document.querySelectorAll(".fh-key").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".fh-key").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    $("fh-custom").value = "";
+    fhReset(b.dataset.k);
+  });
+});
+document.querySelectorAll(".fh-turn").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".fh-turn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    fhState.first = b.dataset.t;
+    if (fhState.key) fhReset(fhState.key);
+  });
+});
+$("fh-custom").addEventListener("change", fhApplyCustom);
+$("fh-custom").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); fhApplyCustom(); } });
+$("fh-submit").addEventListener("click", fhSubmit);
+$("fh-input").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); fhSubmit(); } });
+$("fh-restart").addEventListener("click", () => {
+  if (fhState.key) fhReset(fhState.key);
+  else { $("fh-feedback").textContent = "请先选一个题目字。"; $("fh-feedback").className = "feedback no"; }
+});
+$("fh-giveup").addEventListener("click", () => {
+  if (fhState.key && !fhState.over) fhEnd(false);
+  else { $("fh-feedback").textContent = "还没有开始对局呢。"; $("fh-feedback").className = "feedback no"; }
+});
+
+/* ============ 封面切换 ============ */
+$("cover-start").addEventListener("click", () => $("cover").classList.add("hide"));
+$("back-cover").addEventListener("click", () => $("cover").classList.remove("hide"));
+
+/* ============ 启动 ============ */
+startQuiz();
+startFill();
+startEmoji();
+renderPoems("");
+fhReset("花");
+</script>
+</body>
+</html>
